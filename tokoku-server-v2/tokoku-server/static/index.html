@@ -1,0 +1,2850 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TokoKu POS</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;background:#f0faf2;color:#1a2e1a}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:230px;background:#166534;color:white;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.12)}
+.sidebar-logo h1{font-size:19px;font-weight:800}
+.sidebar-logo p{font-size:11px;opacity:0.65;margin-top:3px}
+.nav-section{padding:14px 14px 4px;font-size:10px;font-weight:700;letter-spacing:1.2px;opacity:0.5;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:9px;margin:2px 8px;cursor:pointer;font-size:13px;font-weight:500;transition:background 0.15s;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,0.1)}
+.nav-item.active{background:rgba(255,255,255,0.18);font-weight:600}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{background:white;border-bottom:1px solid #e2f0e5;padding:0 22px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.content{flex:1;overflow-y:auto;padding:22px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 0.15s;white-space:nowrap;user-select:none}
+.btn:active{transform:scale(0.97)}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-p{background:#1d7a3c;color:white}.btn-p:hover{background:#155c2d}
+.btn-s{background:#e8f5ec;color:#1d7a3c;border:1px solid #b6e3c4}.btn-s:hover{background:#d4edda}
+.btn-d{background:#fee2e2;color:#dc2626;border:1px solid #fca5a5}.btn-d:hover{background:#fcc9c9}
+.btn-a{background:#fef3c7;color:#d97706;border:1px solid #fcd34d}.btn-a:hover{background:#fde68a}
+.btn-b{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}.btn-b:hover{background:#bfdbfe}
+.btn-sm{padding:6px 12px;font-size:12px}.btn-xs{padding:4px 9px;font-size:11px;border-radius:6px}
+.card{background:white;border-radius:12px;border:1px solid #e2f0e5;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+input,select,textarea{font-family:inherit;font-size:13px;padding:9px 12px;border:1.5px solid #d1e8d5;border-radius:8px;background:white;color:#1a2e1a;outline:none;width:100%;transition:border 0.15s}
+input:focus,select:focus,textarea:focus{border-color:#1d7a3c;box-shadow:0 0 0 3px rgba(29,122,60,0.08)}
+.fg{margin-bottom:13px}.fl{font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.metric{background:#f0faf2;border-radius:10px;padding:14px 16px;border:1px solid #c6ecd2}
+.metric.red{background:#fff5f5;border-color:#fca5a5}
+.metric.amber{background:#fffbeb;border-color:#fcd34d}
+.metric.blue{background:#eff6ff;border-color:#93c5fd}
+.m-lbl{font-size:11px;color:#6b7280;font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px}
+.m-val{font-size:22px;font-weight:800;color:#1a2e1a;line-height:1}
+.m-val.red{color:#dc2626}.m-val.amber{color:#d97706}.m-val.blue{color:#1e40af}
+.m-sub{font-size:11px;color:#6b7280;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:#f0faf2}
+th{text-align:left;padding:9px 13px;color:#2a5a2a;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap}
+td{padding:9px 13px;border-bottom:1px solid #f0f8f2;color:#1a2e1a;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafffe}
+.tag{display:inline-flex;align-items:center;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:700}
+.tg{background:#e8f5ec;color:#155c2d}.ta{background:#fef3c7;color:#92400e}
+.tr{background:#fee2e2;color:#991b1b}.tgy{background:#f3f4f6;color:#374151}.tb{background:#dbeafe;color:#1e40af}
+.tp{background:#fae8ff;color:#7c3aed}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(2px)}
+.modal{background:white;border-radius:16px;width:90%;max-width:540px;max-height:92vh;overflow-y:auto;padding:22px;box-shadow:0 25px 80px rgba(0,0,0,0.2)}
+.modal-lg{max-width:860px}
+.modal-xl{max-width:1100px}
+.modal-title{font-size:17px;font-weight:800;color:#1a2e1a}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:2000;animation:tin 0.25s ease;box-shadow:0 4px 20px rgba(0,0,0,0.15)}
+@keyframes tin{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+.t-ok{background:#1d7a3c;color:white}.t-err{background:#dc2626;color:white}
+.pos-layout{display:grid;grid-template-columns:1fr 370px;height:calc(100vh - 54px);overflow:hidden}
+.pos-left{overflow-y:auto;padding:16px;background:#f8fbf8;border-right:1px solid #e2f0e5}
+.pos-right{background:white;display:flex;flex-direction:column;overflow:hidden}
+.cart-hdr{padding:12px 16px;border-bottom:1px solid #e2f0e5;background:#f0faf2;font-weight:700;font-size:14px}
+.cart-body{flex:1;overflow-y:auto;padding:10px}
+.cart-item{background:white;border-radius:10px;padding:10px 12px;margin-bottom:7px;border:1.5px solid #e2f0e5}
+.cart-foot{border-top:2px solid #e2f0e5;padding:14px 16px;background:white}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.pcard{background:white;border:1.5px solid #e2f0e5;border-radius:10px;padding:10px 8px;cursor:pointer;transition:all 0.15s;text-align:center;user-select:none;position:relative}
+.pcard:hover{border-color:#1d7a3c;background:#f0faf2;transform:translateY(-2px);box-shadow:0 4px 12px rgba(29,122,60,0.12)}
+.pcard.low{border-color:#fcd34d;background:#fffbeb}
+.pcard.out{opacity:0.6;cursor:not-allowed}
+.pcard.wholesale-active{border-color:#93c5fd;background:#eff6ff}
+.pcard.wholesale-active:hover{border-color:#1e40af;background:#dbeafe}
+.pname{font-size:12px;font-weight:700;margin-top:5px;line-height:1.3}
+.pprice{font-size:11px;color:#1d7a3c;font-weight:700;margin-top:3px;font-family:'DM Mono',monospace}
+.qty-ctrl{display:flex;align-items:center;gap:5px}
+.qty-btn{width:26px;height:26px;border-radius:7px;border:1.5px solid #d1e8d5;background:white;cursor:pointer;font-size:15px;font-weight:700;color:#1d7a3c;display:flex;align-items:center;justify-content:center;transition:all 0.1s}
+.qty-btn:hover{background:#e8f5ec}
+.qty-val{font-size:13px;font-weight:700;min-width:28px;text-align:center}
+.srch{position:relative}.srch input{padding-left:38px}
+.srch-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#6b7280;pointer-events:none}
+.tabs{display:flex;gap:5px;flex-wrap:wrap}
+.tab{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid #d1e8d5;background:white;color:#6b7280;transition:all 0.15s;user-select:none}
+.tab.on{background:#1d7a3c;color:white;border-color:#1d7a3c}
+.tab:hover:not(.on){background:#e8f5ec;color:#1d7a3c}
+.price{font-family:'DM Mono',monospace;font-weight:500}
+.badge{padding:4px 11px;border-radius:20px;font-size:12px;font-weight:700}
+.badge-g{background:#e8f5ec;color:#1d7a3c}.badge-a{background:#fef3c7;color:#d97706}
+.badge-r{background:#fee2e2;color:#dc2626}
+.lg-screen{min-height:100vh;background:linear-gradient(135deg,#0f4020 0%,#1d7a3c 45%,#2a9d54 100%);display:flex;align-items:center;justify-content:center;overflow:auto;padding:20px}
+.lg-card{background:white;border-radius:20px;padding:38px;width:380px;box-shadow:0 30px 90px rgba(0,0,0,0.2)}
+.lg-logo{text-align:center;margin-bottom:28px}
+.lg-logo h1{font-size:26px;font-weight:800;color:#1d7a3c}
+.lang-row{display:flex;gap:3px;background:#f3f4f6;border-radius:8px;padding:3px}
+.lang-btn{padding:4px 11px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:transparent;color:#6b7280;transition:all 0.15s}
+.lang-btn.on{background:white;color:#1d7a3c;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+.rcpt{font-family:'DM Mono',monospace;font-size:12px;background:#fafafa;border:1px dashed #ccc;border-radius:8px;padding:16px;white-space:pre-wrap;line-height:1.8;max-height:320px;overflow-y:auto}
+.alert-w{border-radius:9px;padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;background:#fef3c7;border:1px solid #fcd34d;color:#92400e}
+.alert-r{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b}
+.alert-b{background:#eff6ff;border:1px solid #93c5fd;color:#1e40af}
+.chart-wrap{display:flex;align-items:flex-end;gap:5px;height:110px;padding:8px 0 0}
+.chart-col{flex:1;display:flex;flex-direction:column;align-items:center}
+.bar{width:80%;border-radius:4px 4px 0 0;background:#1d7a3c;min-height:4px}
+.bar-lbl{font-size:9px;color:#6b7280;margin-top:4px;text-align:center}
+.divider{height:1px;background:#e2f0e5;margin:14px 0}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#init-loader{position:fixed;inset:0;background:#f0faf2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:9999}
+.init-spin{width:44px;height:44px;border:4px solid #e2f0e5;border-top-color:#1d7a3c;border-radius:50%;animation:spin 1s linear infinite}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.page-title{font-size:20px;font-weight:800}
+.filter-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.filter-bar input,.filter-bar select{width:auto;min-width:140px}
+.tbl-wrap{background:white;border-radius:12px;border:1px solid #e2f0e5;overflow:hidden}
+.tbl-scroll{overflow-x:auto}
+.status-paid{color:#155c2d;background:#e8f5ec;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.status-unpaid{color:#92400e;background:#fef3c7;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.status-partial{color:#1e40af;background:#dbeafe;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.status-overdue{color:#991b1b;background:#fee2e2;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}
+.notif-card{border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px}
+.notif-high{background:#fee2e2;border:1px solid #fca5a5}
+.notif-med{background:#fef3c7;border:1px solid #fcd34d}
+.notif-low{background:#eff6ff;border:1px solid #93c5fd}
+.section-title{font-size:14px;font-weight:800;color:#1a2e1a;margin-bottom:12px}
+.ledger-table th{background:#f8fbf8}
+.ledger-debit{color:#dc2626;font-weight:700}
+.ledger-credit{color:#1d7a3c;font-weight:700}
+.ledger-balance{font-weight:700;font-family:'DM Mono',monospace}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#c6ecd2;border-radius:3px}
+@media print{.sidebar,.topbar,.no-print{display:none!important}}
+</style>
+</head>
+<body>
+<div id="init-loader">
+  <div class="init-spin"></div>
+  <div style="font-size:16px;font-weight:700;color:#1d7a3c">Memuat TokoKu POS...</div>
+</div>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useEffect,useRef,useMemo,useCallback}=React;
+
+/* ── API ── */
+const API={
+  async req(method,path,body){
+    const opts={method,headers:{'Content-Type':'application/json'}};
+    if(body)opts.body=JSON.stringify(body);
+    const res=await fetch('/api'+path,opts);
+    const data=await res.json();
+    if(!data.ok)throw new Error(data.error||'Server error');
+    return data;
+  },
+  get:(p)=>API.req('GET',p),
+  post:(p,b)=>API.req('POST',p,b),
+  put:(p,b)=>API.req('PUT',p,b),
+  delete:(p,b)=>API.req('DELETE',p,b),
+};
+
+/* ── HELPERS ── */
+const IDR=n=>'Rp '+Number(n||0).toLocaleString('id-ID');
+const today=()=>new Date().toISOString().split('T')[0];
+const fmtDate=d=>{if(!d)return'-';const dt=new Date(d);return dt.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});};
+const fmtDT=d=>new Date(d).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const monthStart=()=>today().substring(0,7)+'-01';
+const addDays=(dateStr,n)=>{const d=new Date(dateStr);d.setDate(d.getDate()+n);return d.toISOString().split('T')[0];};
+const isOverdue=(dueDate)=>dueDate&&dueDate<today();
+const C={green:'#1d7a3c',greenDk:'#155c2d',greenL:'#e8f5ec',greenP:'#f0faf2',
+         amber:'#d97706',amberL:'#fef3c7',red:'#dc2626',redL:'#fee2e2',
+         blue:'#1e40af',blueL:'#dbeafe',gray:'#6b7280',grayL:'#f3f4f6',text:'#1a2e1a',border:'#d1e8d5'};
+
+/* ── i18n ── */
+const T={
+  id:{pos:'Kasir',products:'Produk',customers:'Pelanggan',reports:'Laporan',settings:'Pengaturan',txHistory:'Riwayat',
+      distributor:'Distributor',pembelian:'Pembelian',hutang:'Hutang Distributor',kas:'Kas',laporanKeu:'Lap. Keuangan',
+      search:'Cari nama / barcode...',total:'Total',pay:'Bayar Sekarang',cash:'Tunai',qris:'QRIS',transfer:'Transfer',change:'Kembalian',
+      hold:'Tahan',receipt:'Struk',discount:'Diskon',save:'Simpan',cancel:'Batal',delete:'Hapus',
+      revenue:'Omzet',profit:'Laba',transactions:'Transaksi',items:'Item',
+      daily:'Hari Ini',weekly:'7 Hari',monthly:'Bulan Ini',custom:'Custom',
+      owner:'Pemilik',admin:'Admin',cashier:'Kasir',login:'Masuk',logout:'Keluar',
+      noCustomer:'Tanpa Pelanggan',saveDebt:'Catat Hutang',voidTx:'Batalkan',
+      topProducts:'Produk Terlaris',stockValue:'Nilai Stok',exportCSV:'Export CSV',
+      addProduct:'Tambah Produk',addCustomer:'Tambah Pelanggan',
+      scanBarcode:'Scan barcode + Enter',payFull:'Bayar Penuh',
+  },
+  en:{pos:'POS',products:'Products',customers:'Customers',reports:'Reports',settings:'Settings',txHistory:'Transactions',
+      distributor:'Distributor',pembelian:'Purchase',hutang:'Supplier Debt',kas:'Cash',laporanKeu:'Finance',
+      search:'Search name / barcode...',total:'Total',pay:'Pay Now',cash:'Cash',qris:'QRIS',transfer:'Transfer',change:'Change',
+      hold:'Hold',receipt:'Receipt',discount:'Discount',save:'Save',cancel:'Cancel',delete:'Delete',
+      revenue:'Revenue',profit:'Profit',transactions:'Transactions',items:'Items',
+      daily:'Today',weekly:'7 Days',monthly:'This Month',custom:'Custom',
+      owner:'Owner',admin:'Admin',cashier:'Cashier',login:'Login',logout:'Logout',
+      noCustomer:'No Customer',saveDebt:'Save as Debt',voidTx:'Void',
+      topProducts:'Top Products',stockValue:'Stock Value',exportCSV:'Export CSV',
+      addProduct:'Add Product',addCustomer:'Add Customer',
+      scanBarcode:'Scan barcode + Enter',payFull:'Pay Full',
+  }
+};
+
+/* ── STATUS HELPERS ── */
+function StatusBadge({status}){
+  const map={
+    paid:{label:'Lunas',cls:'status-paid'},
+    unpaid:{label:'Belum Lunas',cls:'status-unpaid'},
+    partial:{label:'Sebagian',cls:'status-partial'},
+    overdue:{label:'Jatuh Tempo',cls:'status-overdue'},
+  };
+  const s=map[status]||{label:status,cls:'status-unpaid'};
+  return <span className={s.cls}>{s.label}</span>;
+}
+
+/* ── COMPONENTS ── */
+function Toast({msg,type}){
+  return <div className={'toast '+(type==='error'?'t-err':'t-ok')}>{type==='error'?'✕':'✓'} {msg}</div>;
+}
+
+function Modal({title,onClose,children,wide,xl}){
+  return(
+    <div className="modal-bg" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className={'modal'+(xl?' modal-xl':wide?' modal-lg':'')}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}}>
+          <div className="modal-title">{title}</div>
+          <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',fontSize:20,color:C.gray,lineHeight:1,padding:'0 4px'}}>×</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Confirm({msg,onOk,onCancel,okLabel='Hapus',danger=true}){
+  return(
+    <div className="modal-bg">
+      <div className="modal" style={{maxWidth:400}}>
+        <div className="modal-title" style={{marginBottom:12}}>Konfirmasi</div>
+        <p style={{fontSize:13,color:C.gray,marginBottom:18}}>{msg}</p>
+        <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
+          <button className="btn btn-s btn-sm" onClick={onCancel}>Batal</button>
+          <button className={'btn btn-sm '+(danger?'btn-d':'btn-p')} onClick={onOk}>{okLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── LOGIN ── */
+function LoginScreen({onLogin,lang,setLang}){
+  const t=T[lang];
+  const [u,setU]=useState('');
+  const [p,setP]=useState('');
+  const [er,setEr]=useState('');
+  const [loading,setLoading]=useState(false);
+  const doLogin=async()=>{
+    setLoading(true);setEr('');
+    try{
+      const r=await API.post('/login',{username:u,password:p});
+      onLogin(r.data);
+    }catch(e){setEr(e.message);}
+    setLoading(false);
+  };
+  return(
+    <div className="lg-screen">
+      <div className="lg-card">
+        <div className="lg-logo">
+          <div style={{fontSize:44,marginBottom:8}}>🛒</div>
+          <h1>TokoKu POS</h1>
+          <p style={{color:C.gray,fontSize:13,marginTop:4}}>Point of Sale & Manajemen Toko</p>
+        </div>
+        <div style={{display:'flex',justifyContent:'center',marginBottom:20}}>
+          <div className="lang-row">
+            <button className={'lang-btn'+(lang==='id'?' on':'')} onClick={()=>setLang('id')}>🇮🇩 Bahasa Indonesia</button>
+            <button className={'lang-btn'+(lang==='en'?' on':'')} onClick={()=>setLang('en')}>🇺🇸 English</button>
+          </div>
+        </div>
+        {er&&<div className="alert-w alert-r" style={{marginBottom:14}}>{er}</div>}
+        <div className="fg"><label className="fl">Username</label><input value={u} onChange={e=>setU(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="username" autoFocus/></div>
+        <div className="fg"><label className="fl">Password</label><input type="password" value={p} onChange={e=>setP(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} placeholder="••••••"/></div>
+        <button className="btn btn-p" style={{width:'100%',padding:12}} onClick={doLogin} disabled={loading}>
+          {loading&&<span className="spin"/>}{t.login}
+        </button>
+        <div style={{textAlign:'center',marginTop:16,fontSize:11,color:C.gray}}>
+          Demo: owner/owner123 | admin/admin123 | kasir/kasir123
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ── POS SCREEN (original, preserved) ── */
+function POSScreen({user,lang,showToast,settings}){
+  const t=T[lang];
+  const [prods,setProds]=useState([]);
+  const [cats,setCats]=useState([]);
+  const [custs,setCusts]=useState([]);
+  const [cart,setCart]=useState([]);
+  const [catF,setCatF]=useState('all');
+  const [srch,setSrch]=useState('');
+  const [payM,setPayM]=useState(null);
+  const [discount,setDiscount]=useState(0);
+  const [custM,setCustM]=useState(null);
+  const [selCust,setSelCust]=useState(null);
+  const [rcptM,setRcptM]=useState(null);
+  const [barcodeIn,setBarcodeIn]=useState('');
+  // pricingMode: 'retail' | 'wholesale' — default retail, auto-set saat pilih pelanggan
+  const [pricingMode,setPricingMode]=useState('retail');
+  const bRef=useRef();
+
+  const load=()=>{
+    API.get('/products').then(r=>setProds(r.data)).catch(()=>{});
+    API.get('/categories').then(r=>setCats(r.data)).catch(()=>{});
+    API.get('/customers').then(r=>setCusts(r.data)).catch(()=>{});
+  };
+  useEffect(()=>{load();},[]);
+
+  const filtProds=useMemo(()=>{
+    let p=prods.filter(x=>x.active!==0);
+    if(catF!=='all')p=p.filter(x=>x.category===catF);
+    if(srch)p=p.filter(x=>x.name.toLowerCase().includes(srch.toLowerCase())||x.barcode?.includes(srch));
+    return p;
+  },[prods,catF,srch]);
+
+  // Harga aktif sebuah produk berdasarkan pricingMode
+  const activePrice=(p)=>{
+    if(pricingMode==='wholesale'){
+      // Jika wholesale_price ada & >0, pakai itu; else fallback ke retail
+      return (p.wholesale_price&&p.wholesale_price>0)?p.wholesale_price:p.price;
+    }
+    return p.price;
+  };
+
+  // Pilih pelanggan → set mode harga otomatis dari default pelanggan, cart di-reprice
+  const pickCustomer=(c)=>{
+    const mode=c?c.pricing_type||'retail':'retail';
+    setSelCust(c);
+    setPricingMode(mode);
+    setCustM(null);
+    // Reprice semua item di cart ke mode baru
+    setCart(cart=>cart.map(item=>{
+      const prod=prods.find(p=>p.id===item.id);
+      if(!prod)return item;
+      const np=mode==='wholesale'&&prod.wholesale_price&&prod.wholesale_price>0
+        ?prod.wholesale_price:prod.price;
+      return {...item,price:np,subtotal:item.qty*np};
+    }));
+  };
+
+  // Ganti mode harga secara manual (kasir override)
+  const switchPricingMode=(mode)=>{
+    setPricingMode(mode);
+    setCart(cart=>cart.map(item=>{
+      const prod=prods.find(p=>p.id===item.id);
+      if(!prod)return item;
+      const np=mode==='wholesale'&&prod.wholesale_price&&prod.wholesale_price>0
+        ?prod.wholesale_price:prod.price;
+      return {...item,price:np,subtotal:item.qty*np};
+    }));
+  };
+
+  const addToCart=p=>{
+    if(p.stock<=0){showToast('Stok habis','error');return;}
+    const ap=activePrice(p);
+    setCart(c=>{
+      const ex=c.find(x=>x.id===p.id);
+      if(ex){
+        if(ex.qty>=p.stock){showToast('Stok tidak cukup','error');return c;}
+        return c.map(x=>x.id===p.id?{...x,qty:x.qty+1,subtotal:(x.qty+1)*x.price}:x);
+      }
+      return [...c,{...p,price:ap,qty:1,subtotal:ap}];
+    });
+  };
+
+  const updQty=(id,qty)=>{
+    const p=prods.find(x=>x.id===id);
+    if(qty>p.stock){showToast('Stok tidak cukup','error');return;}
+    if(qty<=0){setCart(c=>c.filter(x=>x.id!==id));return;}
+    setCart(c=>c.map(x=>x.id===id?{...x,qty,subtotal:qty*x.price}:x));
+  };
+
+  const subtotal=cart.reduce((s,i)=>s+i.subtotal,0);
+  const discAmt=discount>0?(discount>100?discount:subtotal*discount/100):0;
+  const taxPct=settings.tax==='1'?Number(settings.taxPct||11):0;
+  const taxAmt=Math.round((subtotal-discAmt)*taxPct/100);
+  const total=subtotal-discAmt+taxAmt;
+
+  const barcodeSearch=()=>{
+    const p=prods.find(x=>x.barcode===barcodeIn.trim());
+    if(p)addToCart(p);
+    else showToast('Barcode tidak ditemukan','error');
+    setBarcodeIn('');
+  };
+
+  const doCheckout=async(method,paidAmt,isDebt)=>{
+    if(cart.length===0)return;
+    try{
+      const status=isDebt?'partial':'done';
+      const r=await API.post('/transactions',{
+        items:cart.map(i=>({id:i.id,product_id:i.id,name:i.name,qty:i.qty,price:i.price,buyPrice:i.buy_price,subtotal:i.subtotal})),
+        subtotal,discount:discAmt,tax:taxAmt,total,
+        payment_method:method,payment_amount:paidAmt,
+        cashier_id:user.id,cashier_name:user.name,
+        customer_id:selCust?.id,customer_name:selCust?.name,
+        pricing_mode:pricingMode,
+        status,date:new Date().toISOString(),
+      });
+      setRcptM({tx:r.data,items:cart,total,paid:paidAmt,change:paidAmt-total,method,customer:selCust,discount:discAmt,tax:taxAmt,pricingMode});
+      setCart([]);setPayM(null);setSelCust(null);setDiscount(0);setPricingMode('retail');
+      showToast('Transaksi berhasil','ok');
+      load();
+    }catch(e){showToast(e.message,'error');}
+  };
+
+  const isWholesale=pricingMode==='wholesale';
+
+  return(
+    <div className="pos-layout">
+      <div className="pos-left">
+        <div style={{display:'flex',gap:8,marginBottom:12,flexWrap:'wrap'}}>
+          <div className="srch" style={{flex:1,minWidth:180}}>
+            <span className="srch-ico">🔍</span>
+            <input value={srch} onChange={e=>setSrch(e.target.value)} placeholder={t.search}/>
+          </div>
+          <div style={{display:'flex',gap:6,alignItems:'center',flex:1,minWidth:200}}>
+            <input ref={bRef} value={barcodeIn} onChange={e=>setBarcodeIn(e.target.value)}
+              onKeyDown={e=>e.key==='Enter'&&barcodeSearch()} placeholder={t.scanBarcode} style={{flex:1}}/>
+          </div>
+        </div>
+        <div className="tabs" style={{marginBottom:12}}>
+          <div className={'tab'+(catF==='all'?' on':'')} onClick={()=>setCatF('all')}>Semua</div>
+          {cats.map(c=><div key={c.id} className={'tab'+(catF===c.name?' on':'')} onClick={()=>setCatF(c.name)}>{c.name}</div>)}
+        </div>
+        <div className="pgrid">
+          {filtProds.map(p=>{
+            const ap=activePrice(p);
+            const hasWholesale=p.wholesale_price&&p.wholesale_price>0&&p.wholesale_price!==p.price;
+            return(
+              <div key={p.id} className={'pcard'+(p.stock<=0?' out':p.stock<=p.min_stock?' low':'')+(isWholesale?' wholesale-active':'')}
+                onClick={()=>addToCart(p)}>
+                <div style={{fontSize:26}}>📦</div>
+                {/* Badge manual hanya tampil saat mode grosir */}
+                {isWholesale&&hasWholesale&&(
+                  <div style={{position:'absolute',top:4,right:4,fontSize:9,fontWeight:800,
+                    background:p.wholesale_price_manual?'#7c3aed':'#1e40af',
+                    color:'white',borderRadius:6,padding:'1px 5px',lineHeight:1.5}}>
+                    {p.wholesale_price_manual?'★ manual':'auto'}
+                  </div>
+                )}
+                <div className="pname">{p.name}</div>
+                <div className="pprice" style={{color:isWholesale&&hasWholesale?C.blue:C.green}}>
+                  {IDR(ap)}
+                  {isWholesale&&hasWholesale&&<span style={{fontSize:9,marginLeft:3,opacity:0.7}}>G</span>}
+                </div>
+                <div style={{fontSize:10,color:p.stock<=0?C.red:p.stock<=p.min_stock?C.amber:C.gray,marginTop:2}}>
+                  Stok: {p.stock} {p.unit}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="pos-right">
+        <div className="cart-hdr" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <span>🛒 Keranjang ({cart.length})</span>
+          <div style={{display:'flex',gap:6,alignItems:'center'}}>
+            {selCust
+              ?<span style={{fontSize:11,background:isWholesale?C.blueL:C.greenL,color:isWholesale?C.blue:C.green,
+                  padding:'3px 8px',borderRadius:12,fontWeight:700,cursor:'pointer'}}
+                  onClick={()=>setCustM(true)}>
+                  👤 {selCust.name} {isWholesale?'(G)':'(E)'}
+                </span>
+              :<button className="btn btn-s btn-xs" onClick={()=>setCustM(true)}>+ Pelanggan</button>
+            }
+          </div>
+        </div>
+        {/* Toggle Harga Eceran/Grosir */}
+        <div style={{padding:'8px 12px',borderBottom:'1px solid #e2f0e5',background:isWholesale?'#eff6ff':'#f8fbf8',display:'flex',alignItems:'center',gap:8}}>
+          <span style={{fontSize:11,color:C.gray,fontWeight:600}}>Mode Harga:</span>
+          <div style={{display:'flex',gap:4}}>
+            <button onClick={()=>switchPricingMode('retail')}
+              style={{fontSize:11,padding:'3px 10px',borderRadius:20,border:'1.5px solid',cursor:'pointer',fontWeight:700,
+                background:!isWholesale?C.green:'white',color:!isWholesale?'white':C.gray,
+                borderColor:!isWholesale?C.green:C.border}}>
+              Eceran
+            </button>
+            <button onClick={()=>switchPricingMode('wholesale')}
+              style={{fontSize:11,padding:'3px 10px',borderRadius:20,border:'1.5px solid',cursor:'pointer',fontWeight:700,
+                background:isWholesale?C.blue:'white',color:isWholesale?'white':C.gray,
+                borderColor:isWholesale?C.blue:C.border}}>
+              Grosir
+            </button>
+          </div>
+          {isWholesale&&<span style={{fontSize:10,color:C.blue,fontWeight:600}}>● Harga grosir aktif</span>}
+        </div>
+        <div className="cart-body">
+          {cart.length===0&&<div style={{textAlign:'center',color:C.gray,fontSize:13,padding:'40px 0'}}>Keranjang kosong</div>}
+          {cart.map(item=>(
+            <div key={item.id} className="cart-item" style={{borderColor:isWholesale?'#bfdbfe':'#e2f0e5'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6}}>
+                <div style={{fontSize:13,fontWeight:700,flex:1,marginRight:8}}>{item.name}
+                  {isWholesale&&<span style={{fontSize:10,color:C.blue,marginLeft:5,fontWeight:600}}>[G]</span>}
+                </div>
+                <button onClick={()=>setCart(c=>c.filter(x=>x.id!==item.id))} style={{background:'none',border:'none',cursor:'pointer',color:C.red,fontSize:16,lineHeight:1}}>×</button>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <div className="qty-ctrl">
+                  <button className="qty-btn" onClick={()=>updQty(item.id,item.qty-1)}>−</button>
+                  <input type="number" className="qty-val" style={{width:48,border:'1.5px solid #d1e8d5',borderRadius:6,padding:'3px 0',textAlign:'center'}}
+                    value={item.qty} onChange={e=>updQty(item.id,Number(e.target.value))}/>
+                  <button className="qty-btn" onClick={()=>updQty(item.id,item.qty+1)}>+</button>
+                </div>
+                <span className="price" style={{fontWeight:700,color:isWholesale?C.blue:C.green}}>{IDR(item.subtotal)}</span>
+              </div>
+              <div style={{fontSize:11,color:C.gray,marginTop:4}}>{IDR(item.price)}/item</div>
+            </div>
+          ))}
+        </div>
+        <div className="cart-foot">
+          <div style={{marginBottom:10}}>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:4}}>
+              <span style={{color:C.gray}}>Subtotal</span><span className="price">{IDR(subtotal)}</span>
+            </div>
+            {discAmt>0&&<div style={{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:4}}>
+              <span style={{color:C.red}}>Diskon</span><span className="price" style={{color:C.red}}>-{IDR(discAmt)}</span>
+            </div>}
+            {taxAmt>0&&<div style={{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:4}}>
+              <span style={{color:C.gray}}>Pajak ({settings.taxPct}%)</span><span className="price">{IDR(taxAmt)}</span>
+            </div>}
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:17,fontWeight:800,marginTop:8,paddingTop:8,borderTop:'2px solid #e2f0e5'}}>
+              <span>{t.total}</span>
+              <span className="price" style={{color:isWholesale?C.blue:C.green}}>{IDR(total)}</span>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:6,marginBottom:8}}>
+            <input type="number" placeholder={t.discount+' (% atau Rp)'} style={{flex:1}}
+              value={discount||''} onChange={e=>setDiscount(Number(e.target.value))}/>
+            {selCust&&<button className="btn btn-d btn-sm" onClick={()=>{setSelCust(null);setPricingMode('retail');}}>✕</button>}
+          </div>
+          <div style={{display:'flex',gap:6}}>
+            <button className="btn btn-p" style={{flex:1,padding:12,background:isWholesale?C.blue:C.green}} onClick={()=>setPayM('pay')} disabled={cart.length===0}>
+              💳 {t.pay}
+            </button>
+          </div>
+        </div>
+      </div>
+      {custM&&(
+        <Modal title="Pilih Pelanggan" onClose={()=>setCustM(null)}>
+          <div style={{maxHeight:340,overflowY:'auto'}}>
+            <div style={{padding:'10px 0',cursor:'pointer',borderBottom:'1px solid #e2f0e5',fontSize:13,color:C.gray}}
+              onClick={()=>pickCustomer(null)}>— Tanpa Pelanggan (Eceran)</div>
+            {custs.map(c=>(
+              <div key={c.id} style={{padding:'10px 0',cursor:'pointer',borderBottom:'1px solid #f0f8f2',display:'flex',justifyContent:'space-between',alignItems:'center'}}
+                onClick={()=>pickCustomer(c)}>
+                <div>
+                  <div style={{fontWeight:700,fontSize:13}}>{c.name}</div>
+                  <div style={{fontSize:11,color:C.gray}}>{c.phone}</div>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:3}}>
+                  <span style={{fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:12,
+                    background:c.pricing_type==='wholesale'?C.blueL:C.greenL,
+                    color:c.pricing_type==='wholesale'?C.blue:C.green}}>
+                    {c.pricing_type==='wholesale'?'Grosir':'Eceran'}
+                  </span>
+                  {c.debt_rem>0&&<span style={{fontSize:10,color:C.red,fontWeight:700}}>Hutang: {IDR(c.debt_rem)}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Modal>
+      )}
+      {payM&&(
+        <PaymentModal total={total} customer={selCust} t={t}
+          onPay={(method,paid)=>doCheckout(method,paid,false)}
+          onDebt={()=>doCheckout('hutang',0,true)}
+          onClose={()=>setPayM(null)}/>
+      )}
+      {rcptM&&<ReceiptModal data={rcptM} settings={settings} onClose={()=>setRcptM(null)}/>}
+    </div>
+  );
+}
+
+function PaymentModal({total,customer,t,onPay,onDebt,onClose}){
+  const [method,setMethod]=useState('cash');
+  const [paid,setPaid]=useState('');
+  const paidNum=Number(paid)||0;
+  const change=paidNum-total;
+  return(
+    <Modal title="Pembayaran" onClose={onClose}>
+      <div style={{marginBottom:14}}>
+        <div style={{textAlign:'center',fontSize:24,fontWeight:800,color:C.green,marginBottom:14}}>{IDR(total)}</div>
+        <div className="tabs" style={{justifyContent:'center',marginBottom:14}}>
+          {[['cash',t.cash],['qris','QRIS'],['transfer',t.transfer]].map(([k,l])=>(
+            <div key={k} className={'tab'+(method===k?' on':'')} onClick={()=>setMethod(k)}>{l}</div>
+          ))}
+        </div>
+        <div className="fg">
+          <label className="fl">Nominal Dibayar</label>
+          <input type="number" value={paid} onChange={e=>setPaid(e.target.value)} autoFocus placeholder="0"/>
+        </div>
+        {paidNum>0&&<div style={{background:C.greenP,borderRadius:8,padding:'10px 14px',display:'flex',justifyContent:'space-between',fontSize:14,fontWeight:700}}>
+          <span>Kembalian</span><span style={{color:change<0?C.red:C.green}}>{IDR(Math.max(0,change))}</span>
+        </div>}
+      </div>
+      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+        <button className="btn btn-p" style={{flex:1}} onClick={()=>onPay(method,paidNum||total)} disabled={paidNum>0&&paidNum<total}>
+          ✓ Bayar
+        </button>
+        <button className="btn btn-s" style={{flex:1}} onClick={()=>onPay(method,total)}>
+          {t.payFull}
+        </button>
+        {customer&&<button className="btn btn-a" style={{flex:1}} onClick={onDebt}>📋 {t.saveDebt}</button>}
+      </div>
+    </Modal>
+  );
+}
+
+function ReceiptModal({data,settings,onClose}){
+  const {tx,items,total,paid,change,method,customer,discount,tax}=data;
+  const rcpt=`
+════════════════════════
+  ${settings.storeName||'Toko Kelontong'}
+  ${settings.storeAddr||''}
+════════════════════════
+No: TRX-${tx?.id||''}
+Tanggal: ${new Date().toLocaleString('id-ID')}
+${customer?'Pelanggan: '+customer.name:''}
+────────────────────────
+${items.map(i=>`${i.name}
+  ${i.qty} x ${IDR(i.price)} = ${IDR(i.subtotal)}`).join('\n')}
+────────────────────────
+Subtotal    : ${IDR(items.reduce((s,i)=>s+i.subtotal,0))}
+${discount>0?'Diskon      : -'+IDR(discount)+'\n':''}${tax>0?'Pajak       : '+IDR(tax)+'\n':''}TOTAL       : ${IDR(total)}
+Bayar (${method}): ${IDR(paid)}
+Kembali     : ${IDR(Math.max(0,change))}
+════════════════════════
+  ${settings.receiptFooter||'Terima kasih!'}
+════════════════════════
+`.trim();
+  return(
+    <Modal title="Struk Transaksi" onClose={onClose}>
+      <div className="rcpt">{rcpt}</div>
+      <div style={{display:'flex',gap:8,marginTop:14}}>
+        <button className="btn btn-p btn-sm" onClick={()=>window.print()}>🖨 Print</button>
+        <button className="btn btn-s btn-sm" onClick={onClose}>Tutup</button>
+      </div>
+    </Modal>
+  );
+}
+
+/* ── PRODUCTS SCREEN ── */
+function ProductsScreen({user,lang,showToast}){
+  const [prods,setProds]=useState([]);
+  const [cats,setCats]=useState([]);
+  const [modal,setModal]=useState(null);
+  const [form,setForm]=useState({});
+  const [confirm,setConfirm]=useState(null);
+  const [stkModal,setStkModal]=useState(null);
+  const [stkAdj,setStkAdj]=useState({delta:0,reason:''});
+  const [srch,setSrch]=useState('');
+  const [catF,setCatF]=useState('all');
+  // Label harga
+  const [labelMode,setLabelMode]=useState(false);
+  const [selected,setSelected]=useState(new Set());
+  const [labelLoading,setLabelLoading]=useState(false);
+
+  const load=()=>{
+    API.get('/products').then(r=>setProds(r.data)).catch(()=>{});
+    API.get('/categories').then(r=>setCats(r.data)).catch(()=>{});
+  };
+  useEffect(()=>{load();},[]);
+
+  const filtered=useMemo(()=>{
+    let p=prods;
+    if(catF!=='all')p=p.filter(x=>x.category===catF);
+    if(srch)p=p.filter(x=>x.name.toLowerCase().includes(srch.toLowerCase())||x.barcode?.includes(srch));
+    return p;
+  },[prods,catF,srch]);
+
+  const openAdd=()=>setForm({barcode:'',name:'',category:cats[0]?.name||'Lainnya',buy_price:0,price:0,wholesale_price:null,wholesale_price_manual:0,stock:0,min_stock:5,unit:'pcs'});
+
+  // ── Label harga helpers ──
+  const toggleSelect=(id)=>setSelected(s=>{const n=new Set(s);n.has(id)?n.delete(id):n.add(id);return n;});
+  const selectAll=()=>setSelected(new Set(filtered.map(p=>p.id)));
+  const selectNone=()=>setSelected(new Set());
+  const selectByCategory=(cat)=>setSelected(new Set(filtered.filter(p=>p.category===cat).map(p=>p.id)));
+
+  const exportLabels=async()=>{
+    if(selected.size===0){showToast('Pilih minimal 1 produk','error');return;}
+    setLabelLoading(true);
+    try{
+      const res=await fetch('/api/export/price-labels',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({product_ids:[...selected]}),
+      });
+      if(!res.ok){const e=await res.json();throw new Error(e.error||'Gagal export');}
+      const blob=await res.blob();
+      const url=URL.createObjectURL(blob);
+      window.open(url,'_blank');
+      setTimeout(()=>URL.revokeObjectURL(url),10000);
+      showToast(`${selected.size} label berhasil diekspor ke PDF`,'ok');
+    }catch(e){showToast(e.message,'error');}
+    setLabelLoading(false);
+  };
+  const save=async()=>{
+    try{
+      const payload={...form,user_id:user.id};
+      if(modal==='add')await API.post('/products',payload);
+      else await API.put('/products/'+form.id,payload);
+      showToast(modal==='add'?'Produk ditambahkan':'Produk diperbarui','ok');
+      setModal(null);load();
+    }catch(e){showToast(e.message,'error');}
+  };
+  const del=async p=>{
+    try{await API.delete('/products/'+p.id,{user_id:user.id});showToast('Produk dihapus','ok');setConfirm(null);load();}
+    catch(e){showToast(e.message,'error');}
+  };
+  const adjStock=async()=>{
+    try{
+      await API.post('/products/'+stkModal.id+'/stock',{...stkAdj,user_id:user.id});
+      showToast('Stok diperbarui','ok');setStkModal(null);load();
+    }catch(e){showToast(e.message,'error');}
+  };
+
+  return(
+    <div>
+      <div className="page-header">
+        <div className="page-title">📦 Produk</div>
+        <div style={{display:'flex',gap:8}}>
+          <button className={'btn btn-sm '+(labelMode?'btn-p':'btn-b')}
+            onClick={()=>{setLabelMode(m=>!m);setSelected(new Set());}}>
+            🏷 {labelMode?'Selesai Pilih Label':'Cetak Label Harga'}
+          </button>
+          {!labelMode&&<button className="btn btn-p btn-sm" onClick={()=>{openAdd();setModal('add');}}>+ Tambah Produk</button>}
+        </div>
+      </div>
+
+      {/* ── Toolbar mode label ── */}
+      {labelMode&&(
+        <div style={{background:'#eff6ff',border:'1.5px solid #93c5fd',borderRadius:10,padding:'12px 16px',marginBottom:14}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:10}}>
+            <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+              <span style={{fontSize:13,fontWeight:700,color:C.blue}}>
+                🏷 Mode Pilih Label — {selected.size} produk dipilih
+              </span>
+              <button className="btn btn-b btn-xs" onClick={selectAll}>Pilih Semua</button>
+              <button className="btn btn-s btn-xs" onClick={selectNone}>Batal Semua</button>
+              {catF!=='all'&&(
+                <button className="btn btn-s btn-xs" onClick={()=>selectByCategory(catF)}>
+                  Pilih Kategori Ini
+                </button>
+              )}
+            </div>
+            <button className="btn btn-p btn-sm" onClick={exportLabels} disabled={selected.size===0||labelLoading}
+              style={{background:C.blue,minWidth:160}}>
+              {labelLoading?<span className="spin"/>:'🖨 '}
+              {labelLoading?'Membuat PDF...':'Export PDF ('+selected.size+' label)'}
+            </button>
+          </div>
+          <div style={{fontSize:11,color:'#1e40af',marginTop:8}}>
+            💡 Klik baris produk untuk pilih/batal. PDF akan terbuka di tab baru siap cetak — format A4, 40 label per halaman.
+          </div>
+        </div>
+      )}
+
+      <div className="filter-bar">
+        <div className="srch" style={{flex:1,maxWidth:320}}>
+          <span className="srch-ico">🔍</span>
+          <input value={srch} onChange={e=>setSrch(e.target.value)} placeholder="Cari produk / barcode..."/>
+        </div>
+        <select value={catF} onChange={e=>setCatF(e.target.value)} style={{width:'auto'}}>
+          <option value="all">Semua Kategori</option>
+          {cats.map(c=><option key={c.id} value={c.name}>{c.name}</option>)}
+        </select>
+      </div>
+      <div className="tbl-wrap">
+        <div className="tbl-scroll">
+          <table>
+            <thead><tr>
+              {labelMode&&<th style={{width:36}}>✓</th>}
+              <th>Barcode</th><th>Nama Produk</th><th>Kategori</th>
+              <th>H. Beli</th><th>H. Eceran</th><th>H. Grosir</th><th>Stok</th><th>Min Stok</th>
+              {!labelMode&&<th>Aksi</th>}
+            </tr></thead>
+            <tbody>
+              {filtered.map(p=>{
+                const isSel=selected.has(p.id);
+                return(
+                  <tr key={p.id}
+                    onClick={labelMode?()=>toggleSelect(p.id):undefined}
+                    style={{
+                      cursor:labelMode?'pointer':undefined,
+                      background:isSel?'#dbeafe':undefined,
+                      outline:isSel?'2px solid #3b82f6':undefined,
+                    }}>
+                    {labelMode&&(
+                      <td style={{textAlign:'center'}}>
+                        <div style={{width:18,height:18,borderRadius:4,border:'2px solid',display:'inline-flex',alignItems:'center',justifyContent:'center',
+                          borderColor:isSel?C.blue:C.border,background:isSel?C.blue:'white',color:'white',fontSize:11,fontWeight:700}}>
+                          {isSel?'✓':''}
+                        </div>
+                      </td>
+                    )}
+                    <td><span style={{fontFamily:'monospace',fontSize:12}}>{p.barcode||'-'}</span></td>
+                    <td><span style={{fontWeight:600}}>{p.name}</span></td>
+                    <td><span className="tag tgy">{p.category}</span></td>
+                    <td><span className="price">{IDR(p.buy_price)}</span></td>
+                    <td><span className="price" style={{fontWeight:700,color:C.green}}>{IDR(p.price)}</span></td>
+                    <td>
+                      <div style={{display:'flex',alignItems:'center',gap:4}}>
+                        <span className="price" style={{fontWeight:700,color:C.blue}}>
+                          {p.wholesale_price&&p.wholesale_price>0?IDR(p.wholesale_price):'-'}
+                        </span>
+                        {p.wholesale_price&&p.wholesale_price>0&&(
+                          <span title={p.wholesale_price_manual?'Diisi manual':'Otomatis sistem (diskon 10%)'}
+                            style={{fontSize:9,fontWeight:800,padding:'1px 5px',borderRadius:5,lineHeight:1.5,
+                              background:p.wholesale_price_manual?'#7c3aed':'#1e40af',color:'white'}}>
+                            {p.wholesale_price_manual?'★ manual':'auto'}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <span style={{fontWeight:700,color:p.stock<=0?C.red:p.stock<=p.min_stock?C.amber:C.text}}>
+                        {p.stock} {p.unit}
+                      </span>
+                      {p.stock<=0&&<span style={{marginLeft:4,fontSize:10,color:C.red}}>⚠ Habis</span>}
+                      {p.stock>0&&p.stock<=p.min_stock&&<span style={{marginLeft:4,fontSize:10,color:C.amber}}>⚠ Rendah</span>}
+                    </td>
+                    <td>{p.min_stock} {p.unit}</td>
+                    {!labelMode&&(
+                      <td>
+                        <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                          <button className="btn btn-b btn-xs" onClick={e=>{e.stopPropagation();setStkModal(p);setStkAdj({delta:0,reason:''});}}>± Stok</button>
+                          <button className="btn btn-s btn-xs" onClick={e=>{e.stopPropagation();setForm(p);setModal('edit');}}>✏</button>
+                          <button className="btn btn-d btn-xs" onClick={e=>{e.stopPropagation();setConfirm(p);}}>🗑</button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {modal&&(
+        <Modal title={modal==='add'?'Tambah Produk':'Edit Produk'} onClose={()=>setModal(null)}>
+          <div className="g2">
+            <div className="fg"><label className="fl">Barcode</label><input value={form.barcode||''} onChange={e=>setForm(f=>({...f,barcode:e.target.value}))}/></div>
+            <div className="fg"><label className="fl">Kategori</label>
+              <select value={form.category||''} onChange={e=>setForm(f=>({...f,category:e.target.value}))}>
+                {cats.map(c=><option key={c.id} value={c.name}>{c.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="fg"><label className="fl">Nama Produk *</label><input value={form.name||''} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/></div>
+          <div className="g2">
+            <div className="fg"><label className="fl">Harga Beli</label><input type="number" value={form.buy_price||0} onChange={e=>setForm(f=>({...f,buy_price:Number(e.target.value)}))}/></div>
+            <div className="fg"><label className="fl">Harga Eceran *</label><input type="number" value={form.price||0} onChange={e=>{
+              const retail=Number(e.target.value);
+              setForm(f=>{
+                // Jika grosir masih otomatis, recalculate
+                const newWs=f.wholesale_price_manual?f.wholesale_price:Math.round(retail*0.9);
+                return {...f,price:retail,wholesale_price:newWs};
+              });
+            }}/></div>
+          </div>
+          {/* Harga Grosir */}
+          <div className="fg">
+            <label className="fl" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <span>Harga Grosir
+                {form.wholesale_price_manual
+                  ?<span style={{marginLeft:6,fontSize:10,background:'#7c3aed',color:'white',padding:'1px 6px',borderRadius:5}}>★ manual</span>
+                  :<span style={{marginLeft:6,fontSize:10,background:'#1e40af',color:'white',padding:'1px 6px',borderRadius:5}}>auto</span>
+                }
+              </span>
+              {form.wholesale_price_manual
+                ?<button type="button" onClick={()=>setForm(f=>({...f,wholesale_price:Math.round((f.price||0)*0.9),wholesale_price_manual:0}))}
+                    style={{fontSize:10,color:C.gray,background:'none',border:'1px solid #d1d5db',borderRadius:6,padding:'2px 8px',cursor:'pointer'}}>
+                    Reset ke otomatis
+                  </button>
+                :<span style={{fontSize:10,color:C.gray}}>Diskon 10% dari eceran · Edit untuk manual</span>
+              }
+            </label>
+            <input type="number"
+              value={form.wholesale_price||''}
+              placeholder={form.price?'Kosong = ikut harga eceran':'Isi harga eceran dulu'}
+              onChange={e=>{
+                const val=e.target.value;
+                setForm(f=>({...f,
+                  wholesale_price:val===''?null:Number(val),
+                  wholesale_price_manual:val===''?0:1,
+                }));
+              }}
+              style={{borderColor:form.wholesale_price_manual?'#7c3aed':'#d1e8d5'}}
+            />
+            {form.price>0&&form.wholesale_price&&form.wholesale_price>0&&(
+              <div style={{fontSize:11,color:C.gray,marginTop:4}}>
+                Selisih dari eceran: <strong style={{color:C.blue}}>{IDR(form.price-form.wholesale_price)}</strong>
+                {' '}({(((form.price-form.wholesale_price)/form.price)*100).toFixed(1)}% diskon)
+              </div>
+            )}
+          </div>
+          <div className="g3">
+            <div className="fg"><label className="fl">Stok</label><input type="number" value={form.stock||0} onChange={e=>setForm(f=>({...f,stock:Number(e.target.value)}))}/></div>
+            <div className="fg"><label className="fl">Min. Stok</label><input type="number" value={form.min_stock||5} onChange={e=>setForm(f=>({...f,min_stock:Number(e.target.value)}))}/></div>
+            <div className="fg"><label className="fl">Satuan</label>
+              <select value={form.unit||'pcs'} onChange={e=>setForm(f=>({...f,unit:e.target.value}))}>
+                {['pcs','kg','gram','liter','ml','botol','karung','pack','lusin','dus','rim'].map(u=><option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+            <button className="btn btn-s btn-sm" onClick={()=>setModal(null)}>Batal</button>
+            <button className="btn btn-p btn-sm" onClick={save}>Simpan</button>
+          </div>
+        </Modal>
+      )}
+
+      {stkModal&&(
+        <Modal title={'Sesuaikan Stok: '+stkModal.name} onClose={()=>setStkModal(null)}>
+          <div style={{textAlign:'center',marginBottom:16}}>
+            <div style={{fontSize:13,color:C.gray}}>Stok Saat Ini</div>
+            <div style={{fontSize:28,fontWeight:800}}>{stkModal.stock} {stkModal.unit}</div>
+          </div>
+          <div className="fg">
+            <label className="fl">Perubahan Stok (+ tambah / - kurangi)</label>
+            <input type="number" value={stkAdj.delta||''} onChange={e=>setStkAdj(s=>({...s,delta:Number(e.target.value)}))} placeholder="contoh: 10 atau -5"/>
+          </div>
+          <div className="fg"><label className="fl">Alasan *</label>
+            <select value={stkAdj.reason} onChange={e=>setStkAdj(s=>({...s,reason:e.target.value}))}>
+              <option value="">-- Pilih alasan --</option>
+              <option value="Koreksi stok">Koreksi stok</option>
+              <option value="Stok opname">Stok opname</option>
+              <option value="Barang rusak">Barang rusak</option>
+              <option value="Retur ke supplier">Retur ke supplier</option>
+              <option value="Penambahan stok manual">Penambahan stok manual</option>
+            </select>
+          </div>
+          {stkAdj.delta!==0&&<div style={{background:C.greenP,borderRadius:8,padding:'10px 14px',marginBottom:12}}>
+            Stok setelah: <strong>{stkModal.stock + Number(stkAdj.delta)} {stkModal.unit}</strong>
+          </div>}
+          <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+            <button className="btn btn-s btn-sm" onClick={()=>setStkModal(null)}>Batal</button>
+            <button className="btn btn-p btn-sm" onClick={adjStock} disabled={!stkAdj.delta||!stkAdj.reason}>Simpan</button>
+          </div>
+        </Modal>
+      )}
+      {confirm&&<Confirm msg={`Hapus produk "${confirm.name}"?`} onOk={()=>del(confirm)} onCancel={()=>setConfirm(null)}/>}
+    </div>
+  );
+}
+
+/* ── CUSTOMERS SCREEN ── */
+function CustomersScreen({user,lang,showToast}){
+  const [custs,setCusts]=useState([]);
+  const [modal,setModal]=useState(null);
+  const [form,setForm]=useState({});
+  const [payM,setPayM]=useState(null);
+  const [payAmt,setPayAmt]=useState('');
+  const [srch,setSrch]=useState('');
+
+  const load=()=>API.get('/customers').then(r=>setCusts(r.data)).catch(()=>{});
+  useEffect(()=>{load();},[]);
+
+  const filtered=useMemo(()=>{
+    if(!srch)return custs;
+    return custs.filter(c=>c.name.toLowerCase().includes(srch.toLowerCase())||c.phone?.includes(srch));
+  },[custs,srch]);
+
+  const save=async()=>{
+    try{
+      if(modal==='add')await API.post('/customers',form);
+      else await API.put('/customers/'+form.id,form);
+      showToast('Data pelanggan disimpan','ok');setModal(null);load();
+    }catch(e){showToast(e.message,'error');}
+  };
+
+  const payDebt=async()=>{
+    const amt=Number(payAmt);
+    if(amt<=0||amt>payM.debt_rem){showToast('Nominal tidak valid','error');return;}
+    try{
+      await API.post('/debts/pay',{customer_id:payM.id,amount:amt,user_id:user.id});
+      showToast('Pembayaran dicatat','ok');setPayM(null);setPayAmt('');load();
+    }catch(e){showToast(e.message,'error');}
+  };
+
+  return(
+    <div>
+      <div className="page-header">
+        <div className="page-title">👥 Pelanggan</div>
+        <button className="btn btn-p btn-sm" onClick={()=>{setForm({name:'',phone:'',address:'',notes:''});setModal('add');}}>+ Tambah</button>
+      </div>
+      <div className="filter-bar">
+        <div className="srch" style={{flex:1,maxWidth:320}}>
+          <span className="srch-ico">🔍</span>
+          <input value={srch} onChange={e=>setSrch(e.target.value)} placeholder="Cari nama / telepon..."/>
+        </div>
+      </div>
+      <div className="tbl-wrap">
+        <table>
+          <thead><tr><th>Nama</th><th>Telepon</th><th>Alamat</th><th>Harga Default</th><th>Total Hutang</th><th>Sisa Hutang</th><th>Aksi</th></tr></thead>
+          <tbody>
+            {filtered.map(c=>(
+              <tr key={c.id}>
+                <td><span style={{fontWeight:600}}>{c.name}</span><div style={{fontSize:11,color:C.gray}}>{c.notes}</div></td>
+                <td>{c.phone||'-'}</td>
+                <td style={{maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.address||'-'}</td>
+                <td>
+                  <span style={{fontSize:12,fontWeight:700,padding:'3px 10px',borderRadius:12,
+                    background:c.pricing_type==='wholesale'?C.blueL:C.greenL,
+                    color:c.pricing_type==='wholesale'?C.blue:C.green}}>
+                    {c.pricing_type==='wholesale'?'Grosir':'Eceran'}
+                  </span>
+                </td>
+                <td><span className="price">{IDR(c.debt_total)}</span></td>
+                <td><span className="price" style={{color:c.debt_rem>0?C.red:C.green,fontWeight:700}}>{IDR(c.debt_rem)}</span></td>
+                <td>
+                  <div style={{display:'flex',gap:5}}>
+                    {c.debt_rem>0&&<button className="btn btn-a btn-xs" onClick={()=>{setPayM(c);setPayAmt('');}}>💰 Bayar</button>}
+                    <button className="btn btn-s btn-xs" onClick={()=>{setForm(c);setModal('edit');}}>✏</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {modal&&(
+        <Modal title={modal==='add'?'Tambah Pelanggan':'Edit Pelanggan'} onClose={()=>setModal(null)}>
+          <div className="fg"><label className="fl">Nama *</label><input value={form.name||''} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/></div>
+          <div className="fg"><label className="fl">Telepon</label><input value={form.phone||''} onChange={e=>setForm(f=>({...f,phone:e.target.value}))}/></div>
+          <div className="fg"><label className="fl">Alamat</label><textarea value={form.address||''} onChange={e=>setForm(f=>({...f,address:e.target.value}))} rows={2}/></div>
+          <div className="fg"><label className="fl">Catatan</label><input value={form.notes||''} onChange={e=>setForm(f=>({...f,notes:e.target.value}))}/></div>
+          <div className="fg">
+            <label className="fl">Harga Default</label>
+            <div style={{display:'flex',gap:8,marginTop:2}}>
+              {[['retail','Eceran','Harga normal / satuan'],['wholesale','Grosir','Harga khusus pelanggan grosir']].map(([val,label,desc])=>(
+                <div key={val} onClick={()=>setForm(f=>({...f,pricing_type:val}))}
+                  style={{flex:1,border:'2px solid',borderRadius:10,padding:'10px 12px',cursor:'pointer',transition:'all 0.15s',
+                    borderColor:form.pricing_type===val?(val==='wholesale'?C.blue:C.green):'#e5e7eb',
+                    background:form.pricing_type===val?(val==='wholesale'?C.blueL:C.greenL):'white'}}>
+                  <div style={{fontWeight:700,fontSize:13,color:form.pricing_type===val?(val==='wholesale'?C.blue:C.green):C.text}}>
+                    {form.pricing_type===val?'✓ ':''}{label}
+                  </div>
+                  <div style={{fontSize:11,color:C.gray,marginTop:2}}>{desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+            <button className="btn btn-s btn-sm" onClick={()=>setModal(null)}>Batal</button>
+            <button className="btn btn-p btn-sm" onClick={save}>Simpan</button>
+          </div>
+        </Modal>
+      )}
+
+      {payM&&(
+        <Modal title={'Bayar Hutang - '+payM.name} onClose={()=>setPayM(null)}>
+          <div style={{background:C.redL,borderRadius:8,padding:'10px 14px',marginBottom:14}}>
+            <div style={{fontSize:12,color:C.gray}}>Sisa Hutang</div>
+            <div style={{fontSize:22,fontWeight:800,color:C.red}}>{IDR(payM.debt_rem)}</div>
+          </div>
+          <div className="fg"><label className="fl">Nominal Pembayaran</label>
+            <input type="number" value={payAmt} onChange={e=>setPayAmt(e.target.value)} placeholder="0"/>
+          </div>
+          <div style={{display:'flex',gap:8}}>
+            <button className="btn btn-s btn-sm" style={{flex:1}} onClick={()=>setPayAmt(String(payM.debt_rem))}>Bayar Lunas</button>
+            <button className="btn btn-p btn-sm" style={{flex:1}} onClick={payDebt}>Simpan Pembayaran</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+/* ── TX HISTORY SCREEN ── */
+function TxHistoryScreen({user,lang,showToast}){
+  const [txs,setTxs]=useState([]);
+  const [detailM,setDetailM]=useState(null);
+  const [voidM,setVoidM]=useState(null);
+  const [voidR,setVoidR]=useState('');
+  const [from,setFrom]=useState(today());
+  const [to,setTo]=useState(today());
+
+  const load=()=>API.get(`/transactions?from=${from}&to=${to}`).then(r=>setTxs(r.data)).catch(()=>{});
+  useEffect(()=>{load();},[from,to]);
+
+  const openDetail=async tx=>{
+    const items=await API.get('/transactions/'+tx.id+'/items');
+    setDetailM({tx,items:items.data});
+  };
+  const doVoid=async()=>{
+    try{
+      await API.post('/transactions/'+voidM.id+'/void',{reason:voidR,voided_by:user.name,user_id:user.id});
+      showToast('Transaksi dibatalkan','ok');setVoidM(null);setVoidR('');load();
+    }catch(e){showToast(e.message,'error');}
+  };
+
+  const total=txs.reduce((s,t)=>t.status!=='void'?s+t.total:s,0);
+  return(
+    <div>
+      <div className="page-header">
+        <div className="page-title">📋 Riwayat Transaksi</div>
+      </div>
+      <div className="filter-bar">
+        <input type="date" value={from} onChange={e=>setFrom(e.target.value)} style={{width:'auto'}}/>
+        <span style={{fontSize:12,color:C.gray}}>s/d</span>
+        <input type="date" value={to} onChange={e=>setTo(e.target.value)} style={{width:'auto'}}/>
+        <button className="btn btn-s btn-sm" onClick={load}>Tampilkan</button>
+        <div style={{marginLeft:'auto',fontWeight:700,fontSize:14}}>Total: <span style={{color:C.green}}>{IDR(total)}</span></div>
+      </div>
+      <div className="tbl-wrap">
+        <table>
+          <thead><tr><th>Tgl</th><th>Kasir</th><th>Pelanggan</th><th>Total</th><th>Metode</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody>
+            {txs.map(tx=>(
+              <tr key={tx.id} style={{opacity:tx.status==='void'?0.5:1}}>
+                <td style={{fontSize:12}}>{fmtDT(tx.date)}</td>
+                <td>{tx.cashier_name}</td>
+                <td>{tx.customer_name||'-'}</td>
+                <td><span className="price" style={{fontWeight:700}}>{IDR(tx.total)}</span></td>
+                <td><span className="tag tgy">{tx.payment_method}</span></td>
+                <td>{tx.status==='void'?<span className="tag tr">Void</span>:tx.status==='done'?<span className="tag tg">Selesai</span>:<span className="tag ta">{tx.status}</span>}</td>
+                <td>
+                  <div style={{display:'flex',gap:5}}>
+                    <button className="btn btn-s btn-xs" onClick={()=>openDetail(tx)}>Detail</button>
+                    {tx.status!=='void'&&user.role!=='cashier'&&
+                      <button className="btn btn-d btn-xs" onClick={()=>{setVoidM(tx);setVoidR('');}}>Void</button>}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {detailM&&(
+        <Modal title={`Detail Transaksi #${detailM.tx.id}`} onClose={()=>setDetailM(null)}>
+          <div className="g2" style={{marginBottom:12}}>
+            <div><div style={{fontSize:11,color:C.gray}}>Tanggal</div><div style={{fontWeight:600}}>{fmtDT(detailM.tx.date)}</div></div>
+            <div><div style={{fontSize:11,color:C.gray}}>Kasir</div><div style={{fontWeight:600}}>{detailM.tx.cashier_name}</div></div>
+          </div>
+          <table>
+            <thead><tr><th>Produk</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead>
+            <tbody>
+              {detailM.items.map(i=>(
+                <tr key={i.id}><td>{i.name}</td><td>{i.qty}</td><td>{IDR(i.price)}</td><td>{IDR(i.subtotal)}</td></tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{borderTop:'2px solid #e2f0e5',marginTop:10,paddingTop:10}}>
+            <div style={{display:'flex',justifyContent:'space-between',fontWeight:800,fontSize:16}}>
+              <span>Total</span><span style={{color:C.green}}>{IDR(detailM.tx.total)}</span>
+            </div>
+            <div style={{fontSize:12,color:C.gray,marginTop:4}}>Metode: {detailM.tx.payment_method} | Dibayar: {IDR(detailM.tx.payment_amount)}</div>
+          </div>
+          {detailM.tx.status==='void'&&<div className="alert-w alert-r" style={{marginTop:12}}>Void: {detailM.tx.void_reason}</div>}
+        </Modal>
+      )}
+      {voidM&&(
+        <Modal title={'Batalkan Transaksi #'+voidM.id} onClose={()=>setVoidM(null)}>
+          <div className="fg"><label className="fl">Alasan Pembatalan *</label>
+            <input value={voidR} onChange={e=>setVoidR(e.target.value)} placeholder="Alasan..."/>
+          </div>
+          <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+            <button className="btn btn-s btn-sm" onClick={()=>setVoidM(null)}>Batal</button>
+            <button className="btn btn-d btn-sm" onClick={doVoid} disabled={!voidR}>Batalkan Transaksi</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+
+/* ── DISTRIBUTOR SCREEN ── */
+function DistributorScreen({user,showToast}){
+  const [dists,setDists]=useState([]);
+  const [modal,setModal]=useState(null);
+  const [form,setForm]=useState({});
+  const [confirm,setConfirm]=useState(null);
+  const [ledgerM,setLedgerM]=useState(null);
+  const [srch,setSrch]=useState('');
+
+  const load=()=>API.get('/distributors').then(r=>setDists(r.data)).catch(()=>{});
+  useEffect(()=>{load();},[]);
+
+  const filtered=useMemo(()=>{
+    if(!srch)return dists;
+    const q=srch.toLowerCase();
+    return dists.filter(d=>d.name.toLowerCase().includes(q)||d.sales_name?.toLowerCase().includes(q)||d.phone?.includes(q));
+  },[dists,srch]);
+
+  const save=async()=>{
+    try{
+      if(modal==='add')await API.post('/distributors',{...form,user_id:user.id});
+      else await API.put('/distributors/'+form.id,{...form,user_id:user.id});
+      showToast('Data distributor disimpan','ok');setModal(null);load();
+    }catch(e){showToast(e.message,'error');}
+  };
+
+  const del=async d=>{
+    try{
+      await API.delete('/distributors/'+d.id,{user_id:user.id});
+      showToast('Distributor dinonaktifkan','ok');setConfirm(null);load();
+    }catch(e){showToast(e.message,'error');}
+  };
+
+  const openLedger=async d=>{
+    try{
+      const r=await API.get('/distributors/'+d.id+'/ledger');
+      setLedgerM(r.data);
+    }catch(e){showToast(e.message,'error');}
+  };
+
+  const emptyForm={name:'',sales_name:'',phone:'',address:'',notes:'',active:1};
+  return(
+    <div>
+      <div className="page-header">
+        <div className="page-title">🏭 Distributor</div>
+        <button className="btn btn-p btn-sm" onClick={()=>{setForm(emptyForm);setModal('add');}}>+ Tambah Distributor</button>
+      </div>
+      <div className="filter-bar">
+        <div className="srch" style={{flex:1,maxWidth:340}}>
+          <span className="srch-ico">🔍</span>
+          <input value={srch} onChange={e=>setSrch(e.target.value)} placeholder="Cari nama / sales / telepon..."/>
+        </div>
+      </div>
+
+      <div className="tbl-wrap">
+        <div className="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>Kode</th><th>Nama Distributor</th><th>Nama Sales</th><th>Telepon</th>
+              <th>Total Pembelian</th><th>Total Hutang</th><th>Overdue</th><th>Status</th><th>Aksi</th>
+            </tr></thead>
+            <tbody>
+              {filtered.map(d=>(
+                <tr key={d.id}>
+                  <td><span style={{fontFamily:'monospace',fontSize:12,color:C.gray}}>{d.code}</span></td>
+                  <td>
+                    <div style={{fontWeight:700}}>{d.name}</div>
+                    {d.address&&<div style={{fontSize:11,color:C.gray}}>{d.address}</div>}
+                  </td>
+                  <td>{d.sales_name||'-'}</td>
+                  <td>{d.phone||'-'}</td>
+                  <td><span className="price">{IDR(d.total_purchase||0)}</span></td>
+                  <td>
+                    <span className="price" style={{color:(d.total_debt||0)>0?C.red:C.green,fontWeight:700}}>
+                      {IDR(d.total_debt||0)}
+                    </span>
+                  </td>
+                  <td>
+                    {(d.overdue_count||0)>0
+                      ? <span className="status-overdue">{d.overdue_count} Faktur</span>
+                      : <span style={{color:C.gray,fontSize:12}}>-</span>}
+                  </td>
+                  <td>{d.active?<span className="tag tg">Aktif</span>:<span className="tag tr">Nonaktif</span>}</td>
+                  <td>
+                    <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                      <button className="btn btn-b btn-xs" onClick={()=>openLedger(d)}>📊 Kartu</button>
+                      <button className="btn btn-s btn-xs" onClick={()=>{setForm(d);setModal('edit');}}>✏</button>
+                      <button className="btn btn-d btn-xs" onClick={()=>setConfirm(d)}>🗑</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="g4" style={{marginTop:16}}>
+        <div className="metric">
+          <div className="m-lbl">Total Distributor</div>
+          <div className="m-val">{dists.filter(d=>d.active).length}</div>
+        </div>
+        <div className="metric">
+          <div className="m-lbl">Total Pembelian</div>
+          <div className="m-val" style={{fontSize:16}}>{IDR(dists.reduce((s,d)=>s+(d.total_purchase||0),0))}</div>
+        </div>
+        <div className="metric amber">
+          <div className="m-lbl">Total Hutang Aktif</div>
+          <div className="m-val amber" style={{fontSize:16}}>{IDR(dists.reduce((s,d)=>s+(d.total_debt||0),0))}</div>
+        </div>
+        <div className="metric red">
+          <div className="m-lbl">Distributor Overdue</div>
+          <div className="m-val red">{dists.filter(d=>(d.overdue_count||0)>0).length}</div>
+        </div>
+      </div>
+
+      {/* Form Modal */}
+      {modal&&(
+        <Modal title={modal==='add'?'Tambah Distributor':'Edit Distributor'} onClose={()=>setModal(null)} wide>
+          <div className="g2">
+            <div className="fg"><label className="fl">Nama Distributor *</label>
+              <input value={form.name||''} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
+            </div>
+            <div className="fg"><label className="fl">Nama Sales / PIC</label>
+              <input value={form.sales_name||''} onChange={e=>setForm(f=>({...f,sales_name:e.target.value}))}/>
+            </div>
+          </div>
+          <div className="g2">
+            <div className="fg"><label className="fl">Nomor Telepon</label>
+              <input value={form.phone||''} onChange={e=>setForm(f=>({...f,phone:e.target.value}))}/>
+            </div>
+            <div className="fg"><label className="fl">Status</label>
+              <select value={form.active??1} onChange={e=>setForm(f=>({...f,active:Number(e.target.value)}))}>
+                <option value={1}>Aktif</option>
+                <option value={0}>Tidak Aktif</option>
+              </select>
+            </div>
+          </div>
+          <div className="fg"><label className="fl">Alamat</label>
+            <textarea value={form.address||''} onChange={e=>setForm(f=>({...f,address:e.target.value}))} rows={2}/>
+          </div>
+          <div className="fg"><label className="fl">Catatan</label>
+            <textarea value={form.notes||''} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} rows={2}/>
+          </div>
+          <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+            <button className="btn btn-s btn-sm" onClick={()=>setModal(null)}>Batal</button>
+            <button className="btn btn-p btn-sm" onClick={save}>Simpan</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Kartu Hutang Modal */}
+      {ledgerM&&(
+        <Modal title={`📊 Kartu Hutang: ${ledgerM.distributor?.name}`} onClose={()=>setLedgerM(null)} xl>
+          <div className="g4" style={{marginBottom:16}}>
+            <div className="metric"><div className="m-lbl">Total Pembelian</div><div className="m-val" style={{fontSize:15}}>{IDR(ledgerM.summary?.total_purchase)}</div></div>
+            <div className="metric"><div className="m-lbl">Total Dibayar</div><div className="m-val" style={{fontSize:15,color:C.green}}>{IDR(ledgerM.summary?.total_paid)}</div></div>
+            <div className="metric amber"><div className="m-lbl">Sisa Hutang</div><div className="m-val amber" style={{fontSize:15}}>{IDR(ledgerM.summary?.total_debt)}</div></div>
+            <div className="metric red"><div className="m-lbl">Faktur Overdue</div><div className="m-val red">{ledgerM.summary?.overdue_invoices||0}</div></div>
+          </div>
+          <div className="tbl-wrap">
+            <div className="tbl-scroll">
+              <table className="ledger-table">
+                <thead><tr>
+                  <th>Tanggal</th><th>Referensi</th><th>Keterangan</th>
+                  <th style={{textAlign:'right'}}>Debit (Hutang)</th>
+                  <th style={{textAlign:'right'}}>Kredit (Bayar)</th>
+                  <th style={{textAlign:'right'}}>Saldo</th>
+                </tr></thead>
+                <tbody>
+                  {ledgerM.ledger?.map((row,i)=>(
+                    <tr key={i}>
+                      <td>{fmtDate(row.date)}</td>
+                      <td><span style={{fontFamily:'monospace',fontSize:12}}>{row.reference}</span></td>
+                      <td>{row.description}</td>
+                      <td style={{textAlign:'right'}}>{row.debit>0?<span className="ledger-debit">{IDR(row.debit)}</span>:'-'}</td>
+                      <td style={{textAlign:'right'}}>{row.credit>0?<span className="ledger-credit">{IDR(row.credit)}</span>:'-'}</td>
+                      <td style={{textAlign:'right'}}><span className="ledger-balance" style={{color:row.balance>0?C.red:C.green}}>{IDR(row.balance)}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:14}}>
+            <button className="btn btn-s btn-sm" onClick={()=>setLedgerM(null)}>Tutup</button>
+          </div>
+        </Modal>
+      )}
+      {confirm&&<Confirm msg={`Nonaktifkan distributor "${confirm.name}"?`} onOk={()=>del(confirm)} onCancel={()=>setConfirm(null)}/>}
+    </div>
+  );
+}
+
+/* ── PEMBELIAN SCREEN ── */
+function PembelianScreen({user,showToast}){
+  const [invoices,setInvoices]=useState([]);
+  const [dists,setDists]=useState([]);
+  const [prods,setProds]=useState([]);
+  const [modal,setModal]=useState(null);
+  const [detailM,setDetailM]=useState(null);
+  const [form,setForm]=useState({});
+  const [items,setItems]=useState([]);
+  const [statusF,setStatusF]=useState('all');
+  const [srch,setSrch]=useState('');
+  const [from,setFrom]=useState(monthStart());
+  const [to,setTo]=useState(today());
+  const [loading,setLoading]=useState(false);
+  const [nextNo,setNextNo]=useState('');
+
+  const load=()=>{
+    let url=`/purchases?from=${from}&to=${to}`;
+    if(statusF!=='all')url+=`&status=${statusF}`;
+    if(srch)url+=`&search=${encodeURIComponent(srch)}`;
+    API.get(url).then(r=>setInvoices(r.data)).catch(()=>{});
+  };
+  useEffect(()=>{
+    load();
+    API.get('/distributors').then(r=>setDists(r.data.filter(d=>d.active))).catch(()=>{});
+    API.get('/products').then(r=>setProds(r.data)).catch(()=>{});
+    API.get('/purchases/next-invoice-no').then(r=>setNextNo(r.data)).catch(()=>{});
+  },[]);
+  useEffect(()=>{load();},[from,to,statusF]);
+
+  const openAdd=()=>{
+    const d0=today();
+    setForm({invoice_no:nextNo,invoice_date:d0,due_date:'',tempo_days:30,payment_type:'hutang_penuh',down_payment:0,payment_method:'transfer',notes:''});
+    setItems([{product_id:'',product_name:'',qty:1,buy_price:0,subtotal:0}]);
+    setModal('add');
+  };
+
+  const addItem=()=>setItems(i=>[...i,{product_id:'',product_name:'',qty:1,buy_price:0,subtotal:0}]);
+  const removeItem=idx=>setItems(i=>i.filter((_,j)=>j!==idx));
+  const updateItem=(idx,field,val)=>{
+    setItems(i=>i.map((item,j)=>{
+      if(j!==idx)return item;
+      const updated={...item,[field]:val};
+      if(field==='product_id'){
+        const p=prods.find(p=>p.id===Number(val));
+        if(p){updated.product_name=p.name;updated.buy_price=p.buy_price||0;}
+      }
+      if(field==='qty'||field==='buy_price'){
+        updated.subtotal=(Number(updated.qty)||0)*(Number(updated.buy_price)||0);
+      }
+      if(field==='product_id'&&val){
+        const p=prods.find(p=>p.id===Number(val));
+        if(p)updated.subtotal=(Number(updated.qty)||0)*(p.buy_price||0);
+      }
+      return updated;
+    }));
+  };
+
+  const totalAmount=items.reduce((s,i)=>s+(Number(i.subtotal)||0),0);
+
+  const calcDueDate=()=>{
+    if(form.invoice_date&&form.tempo_days){
+      return addDays(form.invoice_date,Number(form.tempo_days));
+    }
+    return form.due_date||'';
+  };
+
+  const save=async()=>{
+    if(!form.invoice_no||!form.distributor_id||!form.invoice_date){
+      showToast('Lengkapi data faktur','error');return;
+    }
+    const validItems=items.filter(i=>i.product_id&&i.qty>0&&i.buy_price>0);
+    if(validItems.length===0){showToast('Tambahkan minimal 1 item valid','error');return;}
+    if(form.payment_type==='hutang_sebagian'&&Number(form.down_payment)<=0){
+      showToast('Masukkan nominal DP untuk hutang sebagian','error');return;
+    }
+    setLoading(true);
+    try{
+      const dueDate=calcDueDate();
+      await API.post('/purchases',{
+        ...form,due_date:dueDate,
+        items:validItems,
+        total_amount:totalAmount,
+        user_id:user.id,user_name:user.name,
+      });
+      showToast('Faktur pembelian disimpan','ok');
+      setModal(null);load();
+      API.get('/purchases/next-invoice-no').then(r=>setNextNo(r.data));
+    }catch(e){showToast(e.message,'error');}
+    setLoading(false);
+  };
+
+  const openDetail=async inv=>{
+    try{
+      const r=await API.get('/purchases/'+inv.id);
+      setDetailM(r.data);
+    }catch(e){showToast(e.message,'error');}
+  };
+
+  const statusTabs=['all','unpaid','partial','overdue','paid'];
+  const statusLabel={all:'Semua',unpaid:'Belum Lunas',partial:'Sebagian',overdue:'Jatuh Tempo',paid:'Lunas'};
+
+  return(
+    <div>
+      <div className="page-header">
+        <div className="page-title">🛍 Pembelian Barang</div>
+        <button className="btn btn-p btn-sm" onClick={openAdd}>+ Buat Faktur</button>
+      </div>
+
+      <div className="filter-bar">
+        <div className="srch" style={{minWidth:240}}>
+          <span className="srch-ico">🔍</span>
+          <input value={srch} onChange={e=>setSrch(e.target.value)} onKeyDown={e=>e.key==='Enter'&&load()} placeholder="Cari nomor faktur / distributor..."/>
+        </div>
+        <input type="date" value={from} onChange={e=>setFrom(e.target.value)} style={{width:'auto'}}/>
+        <span style={{fontSize:12,color:C.gray}}>s/d</span>
+        <input type="date" value={to} onChange={e=>setTo(e.target.value)} style={{width:'auto'}}/>
+        <button className="btn btn-s btn-sm" onClick={load}>Tampilkan</button>
+        <a className="btn btn-b btn-sm" href={`/api/export/purchases?from=${from}&to=${to}`} target="_blank">⬇ Excel</a>
+      </div>
+
+      <div className="tabs" style={{marginBottom:12}}>
+        {statusTabs.map(s=>(
+          <div key={s} className={'tab'+(statusF===s?' on':'')} onClick={()=>setStatusF(s)}>{statusLabel[s]}</div>
+        ))}
+      </div>
+
+      <div className="tbl-wrap">
+        <div className="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>No Faktur</th><th>Distributor</th><th>Tgl Faktur</th><th>Jatuh Tempo</th>
+              <th>Tipe Bayar</th><th>Total</th><th>Dibayar</th><th>Sisa</th><th>Status</th><th>Aksi</th>
+            </tr></thead>
+            <tbody>
+              {invoices.map(inv=>(
+                <tr key={inv.id}>
+                  <td><span style={{fontFamily:'monospace',fontSize:12,fontWeight:700}}>{inv.invoice_no}</span></td>
+                  <td><span style={{fontWeight:600}}>{inv.distributor_name}</span></td>
+                  <td>{fmtDate(inv.invoice_date)}</td>
+                  <td style={{color:inv.status==='overdue'?C.red:inv.due_date&&inv.due_date<=today()?C.amber:C.text}}>
+                    {fmtDate(inv.due_date)}
+                    {inv.status==='overdue'&&<span style={{marginLeft:4,fontSize:10}}>⚠</span>}
+                  </td>
+                  <td>
+                    <span className={'tag '+(inv.payment_type==='cash'?'tg':inv.payment_type==='hutang_penuh'?'ta':'tb')}>
+                      {inv.payment_type==='cash'?'Cash':inv.payment_type==='hutang_penuh'?'Hutang Penuh':'Hutang Sebagian'}
+                    </span>
+                  </td>
+                  <td><span className="price">{IDR(inv.total_amount)}</span></td>
+                  <td><span className="price" style={{color:C.green}}>{IDR(inv.paid_amount)}</span></td>
+                  <td><span className="price" style={{color:inv.remaining_amount>0?C.red:C.green,fontWeight:700}}>{IDR(inv.remaining_amount)}</span></td>
+                  <td><StatusBadge status={inv.status}/></td>
+                  <td>
+                    <button className="btn btn-s btn-xs" onClick={()=>openDetail(inv)}>Detail</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* FORM MODAL */}
+      {modal==='add'&&(
+        <Modal title="Buat Faktur Pembelian" onClose={()=>setModal(null)} xl>
+          <div className="g3">
+            <div className="fg"><label className="fl">Nomor Faktur *</label>
+              <input value={form.invoice_no||''} onChange={e=>setForm(f=>({...f,invoice_no:e.target.value}))}/>
+            </div>
+            <div className="fg"><label className="fl">Tanggal Faktur *</label>
+              <input type="date" value={form.invoice_date||''} onChange={e=>setForm(f=>({...f,invoice_date:e.target.value}))}/>
+            </div>
+            <div className="fg"><label className="fl">Distributor *</label>
+              <select value={form.distributor_id||''} onChange={e=>setForm(f=>({...f,distributor_id:Number(e.target.value)}))}>
+                <option value="">-- Pilih Distributor --</option>
+                {dists.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="g3">
+            <div className="fg"><label className="fl">Tipe Pembayaran *</label>
+              <select value={form.payment_type||'hutang_penuh'} onChange={e=>setForm(f=>({...f,payment_type:e.target.value}))}>
+                <option value="cash">Cash (Langsung Lunas)</option>
+                <option value="hutang_penuh">Hutang Penuh</option>
+                <option value="hutang_sebagian">Hutang Sebagian (DP)</option>
+              </select>
+            </div>
+            {form.payment_type!=='cash'&&<>
+              <div className="fg"><label className="fl">Tempo (Hari)</label>
+                <input type="number" value={form.tempo_days||''} onChange={e=>{
+                  const days=Number(e.target.value);
+                  setForm(f=>({...f,tempo_days:days,due_date:form.invoice_date?addDays(form.invoice_date,days):''}));
+                }} placeholder="e.g. 30"/>
+              </div>
+              <div className="fg"><label className="fl">Tanggal Jatuh Tempo</label>
+                <input type="date" value={calcDueDate()} onChange={e=>setForm(f=>({...f,due_date:e.target.value,tempo_days:''}))}/>
+              </div>
+            </>}
+          </div>
+
+          {form.payment_type==='hutang_sebagian'&&(
+            <div className="g2">
+              <div className="fg"><label className="fl">DP / Dibayar Saat Ini (Rp) *</label>
+                <input type="number" value={form.down_payment||''} onChange={e=>setForm(f=>({...f,down_payment:Number(e.target.value)}))} placeholder="0"/>
+              </div>
+              <div className="fg"><label className="fl">Metode Bayar DP</label>
+                <select value={form.payment_method||'transfer'} onChange={e=>setForm(f=>({...f,payment_method:e.target.value}))}>
+                  <option value="cash">Cash</option>
+                  <option value="transfer">Transfer</option>
+                  <option value="giro">Giro</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div className="fg"><label className="fl">Catatan</label>
+            <input value={form.notes||''} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} placeholder="Opsional"/>
+          </div>
+
+          <div style={{fontWeight:700,fontSize:14,marginBottom:10,marginTop:4}}>Detail Barang</div>
+          <div className="tbl-wrap" style={{marginBottom:10}}>
+            <div className="tbl-scroll">
+              <table>
+                <thead><tr><th style={{minWidth:200}}>Produk</th><th style={{minWidth:80}}>Qty</th><th style={{minWidth:120}}>Harga Beli</th><th style={{minWidth:120}}>Subtotal</th><th></th></tr></thead>
+                <tbody>
+                  {items.map((item,idx)=>(
+                    <tr key={idx}>
+                      <td>
+                        <select value={item.product_id||''} onChange={e=>updateItem(idx,'product_id',e.target.value)} style={{minWidth:180}}>
+                          <option value="">-- Pilih Produk --</option>
+                          {prods.map(p=><option key={p.id} value={p.id}>{p.name} (Stok: {p.stock})</option>)}
+                        </select>
+                      </td>
+                      <td><input type="number" value={item.qty||''} onChange={e=>updateItem(idx,'qty',Number(e.target.value))} style={{width:70}} min="1"/></td>
+                      <td><input type="number" value={item.buy_price||''} onChange={e=>updateItem(idx,'buy_price',Number(e.target.value))} style={{width:110}}/></td>
+                      <td><span className="price" style={{fontWeight:700}}>{IDR(item.subtotal)}</span></td>
+                      <td><button className="btn btn-d btn-xs" onClick={()=>removeItem(idx)}>×</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+            <button className="btn btn-s btn-sm" onClick={addItem}>+ Tambah Baris</button>
+            <div style={{fontWeight:800,fontSize:16}}>
+              Total: <span style={{color:C.green}}>{IDR(totalAmount)}</span>
+            </div>
+          </div>
+          {form.payment_type==='hutang_sebagian'&&totalAmount>0&&(
+            <div className="alert-b" style={{marginBottom:12}}>
+              <span>💡 Total: {IDR(totalAmount)} | DP: {IDR(form.down_payment||0)} | Sisa Hutang: <strong>{IDR(totalAmount-(Number(form.down_payment)||0))}</strong></span>
+            </div>
+          )}
+          <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+            <button className="btn btn-s btn-sm" onClick={()=>setModal(null)}>Batal</button>
+            <button className="btn btn-p btn-sm" onClick={save} disabled={loading}>
+              {loading&&<span className="spin"/>}Simpan Faktur
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* DETAIL MODAL */}
+      {detailM&&(
+        <Modal title={`Detail Faktur: ${detailM.invoice?.invoice_no}`} onClose={()=>setDetailM(null)} wide>
+          <div className="g2" style={{marginBottom:14}}>
+            <div>
+              <div style={{fontSize:11,color:C.gray}}>Distributor</div>
+              <div style={{fontWeight:700,fontSize:15}}>{detailM.invoice?.distributor_name}</div>
+            </div>
+            <div>
+              <div style={{fontSize:11,color:C.gray}}>Status</div>
+              <StatusBadge status={detailM.invoice?.status}/>
+            </div>
+            <div>
+              <div style={{fontSize:11,color:C.gray}}>Tgl Faktur</div>
+              <div style={{fontWeight:600}}>{fmtDate(detailM.invoice?.invoice_date)}</div>
+            </div>
+            <div>
+              <div style={{fontSize:11,color:C.gray}}>Jatuh Tempo</div>
+              <div style={{fontWeight:600,color:detailM.invoice?.status==='overdue'?C.red:C.text}}>{fmtDate(detailM.invoice?.due_date)}</div>
+            </div>
+          </div>
+          <div className="section-title">Item Pembelian</div>
+          <table style={{marginBottom:14}}>
+            <thead><tr><th>Produk</th><th>Qty</th><th>Harga Beli</th><th>Subtotal</th></tr></thead>
+            <tbody>
+              {detailM.items?.map(i=>(
+                <tr key={i.id}><td>{i.product_name}</td><td>{i.qty}</td><td>{IDR(i.buy_price)}</td><td>{IDR(i.subtotal)}</td></tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{background:C.greenP,borderRadius:8,padding:'10px 14px',marginBottom:14}}>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+              <span style={{color:C.gray}}>Total Faktur</span><span className="price" style={{fontWeight:700}}>{IDR(detailM.invoice?.total_amount)}</span>
+            </div>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+              <span style={{color:C.gray}}>Sudah Dibayar</span><span className="price" style={{color:C.green,fontWeight:700}}>{IDR(detailM.invoice?.paid_amount)}</span>
+            </div>
+            <div style={{display:'flex',justifyContent:'space-between',borderTop:'1px solid #e2f0e5',paddingTop:8,marginTop:4}}>
+              <span style={{fontWeight:700}}>Sisa Hutang</span><span className="price" style={{fontWeight:800,fontSize:16,color:detailM.invoice?.remaining_amount>0?C.red:C.green}}>{IDR(detailM.invoice?.remaining_amount)}</span>
+            </div>
+          </div>
+          {detailM.payments?.length>0&&<>
+            <div className="section-title">Riwayat Pembayaran</div>
+            <table>
+              <thead><tr><th>Tgl Bayar</th><th>Metode</th><th>Nominal</th><th>Catatan</th></tr></thead>
+              <tbody>
+                {detailM.payments.map(p=>(
+                  <tr key={p.id}><td>{fmtDate(p.payment_date)}</td><td>{p.method}</td><td><span className="price" style={{color:C.green,fontWeight:700}}>{IDR(p.amount)}</span></td><td>{p.notes||'-'}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </>}
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+
+/* ── HUTANG DISTRIBUTOR SCREEN ── */
+function HutangScreen({user,showToast}){
+  const [debts,setDebts]=useState([]);
+  const [summary,setSummary]=useState({});
+  const [statusF,setStatusF]=useState('all');
+  const [srch,setSrch]=useState('');
+  const [from,setFrom]=useState('');
+  const [to,setTo]=useState('');
+  const [payModal,setPayModal]=useState(null);
+  const [payForm,setPayForm]=useState({});
+  const [histModal,setHistModal]=useState(null);
+  const [loading,setLoading]=useState(false);
+
+  const load=()=>{
+    let url='/supplier-debts?';
+    if(statusF!=='all')url+=`status=${statusF}&`;
+    if(from)url+=`from=${from}&`;
+    if(to)url+=`to=${to}&`;
+    if(srch)url+=`search=${encodeURIComponent(srch)}`;
+    API.get(url).then(r=>{setDebts(r.data);setSummary(r.summary||{});}).catch(()=>{});
+  };
+  useEffect(()=>{load();},[statusF,from,to]);
+
+  const openPay=inv=>{
+    setPayForm({
+      payment_date:today(),
+      amount:inv.remaining_amount,
+      method:'transfer',
+      notes:'',
+    });
+    setPayModal(inv);
+  };
+
+  const doPay=async()=>{
+    if(!payForm.amount||Number(payForm.amount)<=0){showToast('Nominal tidak valid','error');return;}
+    setLoading(true);
+    try{
+      await API.post(`/supplier-debts/${payModal.id}/pay`,{
+        ...payForm,
+        amount:Number(payForm.amount),
+        user_id:user.id,user_name:user.name,
+      });
+      showToast('Pembayaran berhasil dicatat','ok');
+      setPayModal(null);load();
+    }catch(e){showToast(e.message,'error');}
+    setLoading(false);
+  };
+
+  const openHist=async inv=>{
+    try{
+      const r=await API.get(`/supplier-debts/${inv.id}/payments`);
+      setHistModal({inv,payments:r.data});
+    }catch(e){showToast(e.message,'error');}
+  };
+
+  const statusTabs=['all','overdue','unpaid','partial','paid'];
+  const statusLabel={all:'Semua',overdue:'⚠ Jatuh Tempo',unpaid:'Belum Lunas',partial:'Sebagian',paid:'Lunas'};
+
+  return(
+    <div>
+      <div className="page-header">
+        <div className="page-title">💳 Hutang Distributor</div>
+        <a className="btn btn-b btn-sm" href="/api/export/debts" target="_blank">⬇ Export Excel</a>
+      </div>
+
+      {/* Summary Alert */}
+      {(summary.overdue_count||0)>0&&(
+        <div className="alert-w alert-r" style={{marginBottom:14}}>
+          ⚠ Ada <strong>{summary.overdue_count} faktur</strong> yang sudah jatuh tempo dengan total hutang <strong>{IDR(summary.overdue_amount)}</strong>! Segera lakukan pembayaran.
+        </div>
+      )}
+
+      {/* Summary Cards */}
+      <div className="g4" style={{marginBottom:16}}>
+        <div className="metric amber">
+          <div className="m-lbl">Total Hutang Aktif</div>
+          <div className="m-val amber" style={{fontSize:16}}>{IDR(summary.total_debt||0)}</div>
+          <div className="m-sub">{summary.active_count||0} faktur aktif</div>
+        </div>
+        <div className="metric red">
+          <div className="m-lbl">Hutang Jatuh Tempo</div>
+          <div className="m-val red" style={{fontSize:16}}>{IDR(summary.overdue_amount||0)}</div>
+          <div className="m-sub">{summary.overdue_count||0} faktur overdue</div>
+        </div>
+        <div className="metric">
+          <div className="m-lbl">Faktur Belum Lunas</div>
+          <div className="m-val">{debts.filter(d=>d.status!=='paid').length}</div>
+        </div>
+        <div className="metric">
+          <div className="m-lbl">Faktur Lunas</div>
+          <div className="m-val" style={{color:C.green}}>{debts.filter(d=>d.status==='paid').length}</div>
+        </div>
+      </div>
+
+      <div className="filter-bar">
+        <div className="srch" style={{minWidth:240}}>
+          <span className="srch-ico">🔍</span>
+          <input value={srch} onChange={e=>setSrch(e.target.value)} onKeyDown={e=>e.key==='Enter'&&load()} placeholder="Cari no faktur / distributor..."/>
+        </div>
+        <input type="date" value={from} onChange={e=>setFrom(e.target.value)} style={{width:'auto'}} placeholder="Dari"/>
+        <span style={{fontSize:12,color:C.gray}}>s/d</span>
+        <input type="date" value={to} onChange={e=>setTo(e.target.value)} style={{width:'auto'}}/>
+        <button className="btn btn-s btn-sm" onClick={load}>Tampilkan</button>
+      </div>
+
+      <div className="tabs" style={{marginBottom:12}}>
+        {statusTabs.map(s=>(
+          <div key={s} className={'tab'+(statusF===s?' on':'')} onClick={()=>setStatusF(s)}>{statusLabel[s]}</div>
+        ))}
+      </div>
+
+      <div className="tbl-wrap">
+        <div className="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>No Faktur</th><th>Distributor</th><th>Tgl Faktur</th><th>Jatuh Tempo</th>
+              <th>Total Faktur</th><th>Sudah Bayar</th><th>Sisa Hutang</th><th>Status</th><th>Aksi</th>
+            </tr></thead>
+            <tbody>
+              {debts.map(d=>(
+                <tr key={d.id} style={{background:d.status==='overdue'?'#fff5f5':undefined}}>
+                  <td><span style={{fontFamily:'monospace',fontWeight:700,fontSize:12}}>{d.invoice_no}</span></td>
+                  <td>
+                    <div style={{fontWeight:600}}>{d.distributor_name}</div>
+                    {d.sales_name&&<div style={{fontSize:11,color:C.gray}}>Sales: {d.sales_name}</div>}
+                  </td>
+                  <td>{fmtDate(d.invoice_date)}</td>
+                  <td>
+                    <span style={{color:d.status==='overdue'?C.red:d.due_date&&d.due_date<=today()?C.amber:C.text,fontWeight:d.status==='overdue'?700:400}}>
+                      {fmtDate(d.due_date)}
+                    </span>
+                  </td>
+                  <td><span className="price">{IDR(d.total_amount)}</span></td>
+                  <td><span className="price" style={{color:C.green}}>{IDR(d.paid_amount)}</span></td>
+                  <td><span className="price" style={{color:d.remaining_amount>0?C.red:C.green,fontWeight:700,fontSize:14}}>{IDR(d.remaining_amount)}</span></td>
+                  <td><StatusBadge status={d.status}/></td>
+                  <td>
+                    <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+                      {d.status!=='paid'&&<button className="btn btn-p btn-xs" onClick={()=>openPay(d)}>💰 Bayar</button>}
+                      <button className="btn btn-s btn-xs" onClick={()=>openHist(d)}>📋 Riwayat</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {debts.length===0&&<tr><td colSpan={9} style={{textAlign:'center',color:C.gray,padding:24}}>Tidak ada data hutang</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* PAYMENT MODAL */}
+      {payModal&&(
+        <Modal title={`Bayar Hutang: ${payModal.invoice_no}`} onClose={()=>setPayModal(null)}>
+          <div style={{background:C.amberL,borderRadius:8,padding:'12px 14px',marginBottom:16}}>
+            <div style={{fontSize:12,color:C.gray}}>Distributor</div>
+            <div style={{fontWeight:700,fontSize:15}}>{payModal.distributor_name}</div>
+            <div style={{display:'flex',justifyContent:'space-between',marginTop:8}}>
+              <div>
+                <div style={{fontSize:11,color:C.gray}}>Total Faktur</div>
+                <div style={{fontWeight:700}}>{IDR(payModal.total_amount)}</div>
+              </div>
+              <div>
+                <div style={{fontSize:11,color:C.gray}}>Sudah Dibayar</div>
+                <div style={{fontWeight:700,color:C.green}}>{IDR(payModal.paid_amount)}</div>
+              </div>
+              <div>
+                <div style={{fontSize:11,color:C.gray}}>Sisa Hutang</div>
+                <div style={{fontWeight:800,fontSize:18,color:C.red}}>{IDR(payModal.remaining_amount)}</div>
+              </div>
+            </div>
+          </div>
+          <div className="g2">
+            <div className="fg"><label className="fl">Tanggal Bayar *</label>
+              <input type="date" value={payForm.payment_date||today()} onChange={e=>setPayForm(f=>({...f,payment_date:e.target.value}))}/>
+            </div>
+            <div className="fg"><label className="fl">Metode Pembayaran</label>
+              <select value={payForm.method||'transfer'} onChange={e=>setPayForm(f=>({...f,method:e.target.value}))}>
+                <option value="transfer">Transfer Bank</option>
+                <option value="cash">Cash</option>
+                <option value="giro">Giro / Cek</option>
+                <option value="qris">QRIS</option>
+              </select>
+            </div>
+          </div>
+          <div className="fg"><label className="fl">Nominal Pembayaran (Rp) *</label>
+            <input type="number" value={payForm.amount||''} onChange={e=>setPayForm(f=>({...f,amount:e.target.value}))} placeholder="0"/>
+          </div>
+          <div className="fg"><label className="fl">Catatan</label>
+            <input value={payForm.notes||''} onChange={e=>setPayForm(f=>({...f,notes:e.target.value}))} placeholder="Opsional"/>
+          </div>
+          {Number(payForm.amount)>0&&Number(payForm.amount)<=payModal.remaining_amount&&(
+            <div style={{background:C.greenP,borderRadius:8,padding:'10px 14px',marginBottom:12}}>
+              Sisa hutang setelah bayar: <strong style={{color:payModal.remaining_amount-Number(payForm.amount)<=0?C.green:C.red}}>
+                {IDR(payModal.remaining_amount-Number(payForm.amount))}
+              </strong>
+              {payModal.remaining_amount-Number(payForm.amount)<=0&&' ✓ LUNAS'}
+            </div>
+          )}
+          <div style={{display:'flex',gap:8}}>
+            <button className="btn btn-s btn-sm" style={{flex:1}} onClick={()=>setPayForm(f=>({...f,amount:payModal.remaining_amount}))}>
+              Bayar Lunas ({IDR(payModal.remaining_amount)})
+            </button>
+            <button className="btn btn-p btn-sm" style={{flex:1}} onClick={doPay} disabled={loading}>
+              {loading&&<span className="spin"/>}Simpan Pembayaran
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* HISTORY MODAL */}
+      {histModal&&(
+        <Modal title={`Riwayat Pembayaran: ${histModal.inv?.invoice_no}`} onClose={()=>setHistModal(null)} wide>
+          <div style={{background:C.greenP,borderRadius:8,padding:'10px 14px',marginBottom:14}}>
+            <div style={{display:'flex',justifyContent:'space-between'}}>
+              <div><div style={{fontSize:11,color:C.gray}}>Total Faktur</div><div style={{fontWeight:700}}>{IDR(histModal.inv?.total_amount)}</div></div>
+              <div><div style={{fontSize:11,color:C.gray}}>Total Dibayar</div><div style={{fontWeight:700,color:C.green}}>{IDR(histModal.inv?.paid_amount)}</div></div>
+              <div><div style={{fontSize:11,color:C.gray}}>Sisa</div><div style={{fontWeight:700,color:histModal.inv?.remaining_amount>0?C.red:C.green}}>{IDR(histModal.inv?.remaining_amount)}</div></div>
+              <div><div style={{fontSize:11,color:C.gray}}>Status</div><StatusBadge status={histModal.inv?.status}/></div>
+            </div>
+          </div>
+          {histModal.payments?.length===0
+            ?<div style={{textAlign:'center',color:C.gray,padding:24}}>Belum ada pembayaran</div>
+            :<table>
+              <thead><tr><th>#</th><th>Tgl Bayar</th><th>Metode</th><th>Nominal</th><th>Oleh</th><th>Catatan</th></tr></thead>
+              <tbody>
+                {histModal.payments.map((p,i)=>(
+                  <tr key={p.id}>
+                    <td>{i+1}</td>
+                    <td>{fmtDate(p.payment_date)}</td>
+                    <td><span className="tag tgy">{p.method}</span></td>
+                    <td><span className="price" style={{color:C.green,fontWeight:700}}>{IDR(p.amount)}</span></td>
+                    <td>{p.created_by_name||'-'}</td>
+                    <td>{p.notes||'-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          }
+          <div style={{display:'flex',justifyContent:'flex-end',marginTop:14}}>
+            <button className="btn btn-s btn-sm" onClick={()=>setHistModal(null)}>Tutup</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+/* ── KAS SCREEN ── */
+function KasScreen({user,showToast}){
+  const [txs,setTxs]=useState([]);
+  const [balance,setBalance]=useState(0);
+  const [totalIn,setTotalIn]=useState(0);
+  const [totalOut,setTotalOut]=useState(0);
+  const [typeF,setTypeF]=useState('all');
+  const [from,setFrom]=useState(monthStart());
+  const [to,setTo]=useState(today());
+  const [srch,setSrch]=useState('');
+  const [addModal,setAddModal]=useState(null);
+  const [form,setForm]=useState({});
+
+  const load=()=>{
+    let url=`/cash?from=${from}&to=${to}`;
+    if(typeF!=='all')url+=`&type=${typeF}`;
+    if(srch)url+=`&search=${encodeURIComponent(srch)}`;
+    API.get(url).then(r=>{
+      setTxs(r.data);setBalance(r.balance||0);
+      setTotalIn(r.total_in||0);setTotalOut(r.total_out||0);
+    }).catch(()=>{});
+  };
+  useEffect(()=>{load();},[from,to,typeF]);
+
+  const saveManual=async()=>{
+    if(!form.category||!form.amount||!form.type){showToast('Lengkapi data','error');return;}
+    try{
+      await API.post('/cash',{...form,amount:Number(form.amount),user_id:user.id,user_name:user.name});
+      showToast('Transaksi kas dicatat','ok');setAddModal(null);load();
+    }catch(e){showToast(e.message,'error');}
+  };
+
+  return(
+    <div>
+      <div className="page-header">
+        <div className="page-title">💰 Kas</div>
+        <div style={{display:'flex',gap:8}}>
+          <button className="btn btn-p btn-sm" onClick={()=>{setForm({type:'in',category:'',reference:'',description:'',amount:'',date:today()});setAddModal(true);}}>+ Kas Manual</button>
+          <a className="btn btn-b btn-sm" href={`/api/export/cash?from=${from}&to=${to}`} target="_blank">⬇ Excel</a>
+        </div>
+      </div>
+
+      {/* Balance Cards */}
+      <div className="g3" style={{marginBottom:16}}>
+        <div className="metric" style={{background:'#f0fff4',borderColor:'#86efac'}}>
+          <div className="m-lbl">💰 Saldo Kas Saat Ini</div>
+          <div className="m-val" style={{fontSize:24,color:balance>=0?C.green:C.red}}>{IDR(balance)}</div>
+          <div className="m-sub">Realtime</div>
+        </div>
+        <div className="metric">
+          <div className="m-lbl">⬇ Kas Masuk (Periode)</div>
+          <div className="m-val" style={{color:C.green,fontSize:18}}>{IDR(totalIn)}</div>
+        </div>
+        <div className="metric amber">
+          <div className="m-lbl">⬆ Kas Keluar (Periode)</div>
+          <div className="m-val amber" style={{fontSize:18}}>{IDR(totalOut)}</div>
+        </div>
+      </div>
+
+      <div className="filter-bar">
+        <div className="srch" style={{minWidth:240}}>
+          <span className="srch-ico">🔍</span>
+          <input value={srch} onChange={e=>setSrch(e.target.value)} onKeyDown={e=>e.key==='Enter'&&load()} placeholder="Cari referensi / kategori..."/>
+        </div>
+        <input type="date" value={from} onChange={e=>setFrom(e.target.value)} style={{width:'auto'}}/>
+        <span style={{fontSize:12,color:C.gray}}>s/d</span>
+        <input type="date" value={to} onChange={e=>setTo(e.target.value)} style={{width:'auto'}}/>
+        <button className="btn btn-s btn-sm" onClick={load}>Tampilkan</button>
+        <div className="tabs">
+          {[['all','Semua'],['in','Masuk'],['out','Keluar']].map(([k,l])=>(
+            <div key={k} className={'tab'+(typeF===k?' on':'')} onClick={()=>setTypeF(k)}>{l}</div>
+          ))}
+        </div>
+      </div>
+
+      <div className="tbl-wrap">
+        <div className="tbl-scroll">
+          <table>
+            <thead><tr>
+              <th>Tanggal</th><th>Tipe</th><th>Kategori</th><th>Referensi</th><th>Keterangan</th>
+              <th style={{textAlign:'right'}}>Kas Masuk</th><th style={{textAlign:'right'}}>Kas Keluar</th><th style={{textAlign:'right'}}>Saldo</th>
+            </tr></thead>
+            <tbody>
+              {[...txs].reverse().map(t=>(
+                <tr key={t.id} style={{background:t.type==='in'?'#fafffe':'#fffcfc'}}>
+                  <td>{fmtDate(t.date)}</td>
+                  <td>{t.type==='in'?<span className="tag tg">⬇ Masuk</span>:<span className="tag tr">⬆ Keluar</span>}</td>
+                  <td><span className="tag tgy">{t.category}</span></td>
+                  <td><span style={{fontFamily:'monospace',fontSize:12}}>{t.reference||'-'}</span></td>
+                  <td style={{maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.description||'-'}</td>
+                  <td style={{textAlign:'right'}}>{t.type==='in'?<span style={{color:C.green,fontWeight:700}}>{IDR(t.amount)}</span>:'-'}</td>
+                  <td style={{textAlign:'right'}}>{t.type==='out'?<span style={{color:C.red,fontWeight:700}}>{IDR(t.amount)}</span>:'-'}</td>
+                  <td style={{textAlign:'right'}}><span style={{fontFamily:'monospace',fontWeight:700,color:t.balance>=0?C.text:C.red}}>{IDR(t.balance)}</span></td>
+                </tr>
+              ))}
+              {txs.length===0&&<tr><td colSpan={8} style={{textAlign:'center',color:C.gray,padding:24}}>Tidak ada transaksi pada periode ini</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {addModal&&(
+        <Modal title="Tambah Kas Manual" onClose={()=>setAddModal(null)}>
+          <div className="fg"><label className="fl">Tipe *</label>
+            <select value={form.type||'in'} onChange={e=>setForm(f=>({...f,type:e.target.value}))}>
+              <option value="in">Kas Masuk</option>
+              <option value="out">Kas Keluar</option>
+            </select>
+          </div>
+          <div className="fg"><label className="fl">Tanggal *</label>
+            <input type="date" value={form.date||today()} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/>
+          </div>
+          <div className="fg"><label className="fl">Kategori *</label>
+            <select value={form.category||''} onChange={e=>setForm(f=>({...f,category:e.target.value}))}>
+              <option value="">-- Pilih Kategori --</option>
+              {form.type==='in'
+                ?['Penjualan','Modal','Pinjaman','Pendapatan Lain'].map(c=><option key={c} value={c}>{c}</option>)
+                :['Biaya Operasional','Gaji','Sewa','Listrik & Air','Transport','Biaya Lain'].map(c=><option key={c} value={c}>{c}</option>)
+              }
+            </select>
+          </div>
+          <div className="fg"><label className="fl">Referensi</label>
+            <input value={form.reference||''} onChange={e=>setForm(f=>({...f,reference:e.target.value}))} placeholder="No. bukti / referensi"/>
+          </div>
+          <div className="fg"><label className="fl">Keterangan</label>
+            <input value={form.description||''} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder="Keterangan transaksi"/>
+          </div>
+          <div className="fg"><label className="fl">Nominal (Rp) *</label>
+            <input type="number" value={form.amount||''} onChange={e=>setForm(f=>({...f,amount:e.target.value}))} placeholder="0"/>
+          </div>
+          <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+            <button className="btn btn-s btn-sm" onClick={()=>setAddModal(null)}>Batal</button>
+            <button className="btn btn-p btn-sm" onClick={saveManual}>Simpan</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+
+/* ── LAPORAN KEUANGAN SCREEN ── */
+function LaporanKeuScreen({user,showToast}){
+  const [activeTab,setActiveTab]=useState('cashflow');
+  const [from,setFrom]=useState(monthStart());
+  const [to,setTo]=useState(today());
+  const [data,setData]=useState(null);
+  const [loading,setLoading]=useState(false);
+
+  const load=async()=>{
+    setLoading(true);
+    try{
+      if(activeTab==='cashflow'){
+        const r=await API.get(`/reports/cash-flow?from=${from}&to=${to}`);
+        setData(r.data);
+      } else if(activeTab==='purchases'){
+        const r=await API.get(`/reports/purchases?from=${from}&to=${to}`);
+        setData(r.data);
+      } else if(activeTab==='debts'){
+        const r=await API.get('/reports/debts');
+        setData(r.data);
+      }
+    }catch(e){showToast(e.message,'error');}
+    setLoading(false);
+  };
+  useEffect(()=>{load();},[activeTab,from,to]);
+
+  const tabs=[
+    {id:'cashflow',label:'📊 Arus Kas'},
+    {id:'purchases',label:'🛍 Laporan Pembelian'},
+    {id:'debts',label:'💳 Laporan Hutang'},
+  ];
+
+  return(
+    <div>
+      <div className="page-header">
+        <div className="page-title">📈 Laporan Keuangan</div>
+        <div style={{display:'flex',gap:8}}>
+          {activeTab==='cashflow'&&<a className="btn btn-b btn-sm" href={`/api/export/cash?from=${from}&to=${to}`} target="_blank">⬇ Excel Kas</a>}
+          {activeTab==='purchases'&&<a className="btn btn-b btn-sm" href={`/api/export/purchases?from=${from}&to=${to}`} target="_blank">⬇ Excel Pembelian</a>}
+          {activeTab==='debts'&&<a className="btn btn-b btn-sm" href="/api/export/debts" target="_blank">⬇ Excel Hutang</a>}
+        </div>
+      </div>
+
+      <div className="tabs" style={{marginBottom:16}}>
+        {tabs.map(t=>(
+          <div key={t.id} className={'tab'+(activeTab===t.id?' on':'')} onClick={()=>setActiveTab(t.id)}>{t.label}</div>
+        ))}
+      </div>
+
+      {activeTab!=='debts'&&(
+        <div className="filter-bar" style={{marginBottom:16}}>
+          <input type="date" value={from} onChange={e=>setFrom(e.target.value)} style={{width:'auto'}}/>
+          <span style={{fontSize:12,color:C.gray}}>s/d</span>
+          <input type="date" value={to} onChange={e=>setTo(e.target.value)} style={{width:'auto'}}/>
+          <button className="btn btn-s btn-sm" onClick={load}>Tampilkan</button>
+        </div>
+      )}
+
+      {loading&&<div style={{textAlign:'center',padding:40,color:C.gray}}>Memuat data...</div>}
+
+      {/* ARUS KAS */}
+      {activeTab==='cashflow'&&data&&!loading&&(
+        <div>
+          <div className="g3" style={{marginBottom:20}}>
+            <div className="metric">
+              <div className="m-lbl">Total Kas Masuk</div>
+              <div className="m-val" style={{color:C.green,fontSize:18}}>{IDR(data.total_in)}</div>
+            </div>
+            <div className="metric amber">
+              <div className="m-lbl">Total Kas Keluar</div>
+              <div className="m-val amber" style={{fontSize:18}}>{IDR(data.total_out)}</div>
+            </div>
+            <div className={'metric'+(data.net>=0?'':' red')}>
+              <div className="m-lbl">Arus Kas Bersih</div>
+              <div className={'m-val'+(data.net<0?' red':'')} style={{fontSize:18}}>{IDR(data.net)}</div>
+              <div className="m-sub">{data.net>=0?'Positif ✓':'Negatif ⚠'}</div>
+            </div>
+          </div>
+
+          <div className="g2" style={{marginBottom:20}}>
+            {/* Kas Masuk per Kategori */}
+            <div className="card">
+              <div className="section-title" style={{color:C.green}}>⬇ Kas Masuk per Kategori</div>
+              {Object.entries(data.by_category_in||{}).length===0
+                ?<div style={{color:C.gray,fontSize:13}}>Tidak ada data</div>
+                :Object.entries(data.by_category_in).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>(
+                  <div key={cat} style={{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid #f0f8f2',fontSize:13}}>
+                    <span>{cat}</span>
+                    <span style={{color:C.green,fontWeight:700}}>{IDR(amt)}</span>
+                  </div>
+                ))
+              }
+            </div>
+            {/* Kas Keluar per Kategori */}
+            <div className="card">
+              <div className="section-title" style={{color:C.red}}>⬆ Kas Keluar per Kategori</div>
+              {Object.entries(data.by_category_out||{}).length===0
+                ?<div style={{color:C.gray,fontSize:13}}>Tidak ada data</div>
+                :Object.entries(data.by_category_out).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>(
+                  <div key={cat} style={{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid #f0f8f2',fontSize:13}}>
+                    <span>{cat}</span>
+                    <span style={{color:C.red,fontWeight:700}}>{IDR(amt)}</span>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+
+          <div className="section-title">Detail Transaksi Kas</div>
+          <div className="tbl-wrap">
+            <div className="tbl-scroll">
+              <table>
+                <thead><tr>
+                  <th>Tanggal</th><th>Tipe</th><th>Kategori</th><th>Referensi</th><th>Keterangan</th>
+                  <th style={{textAlign:'right'}}>Masuk</th><th style={{textAlign:'right'}}>Keluar</th><th style={{textAlign:'right'}}>Saldo</th>
+                </tr></thead>
+                <tbody>
+                  {data.transactions?.map(t=>(
+                    <tr key={t.id}>
+                      <td>{fmtDate(t.date)}</td>
+                      <td>{t.type==='in'?<span className="tag tg">Masuk</span>:<span className="tag tr">Keluar</span>}</td>
+                      <td>{t.category}</td>
+                      <td style={{fontFamily:'monospace',fontSize:12}}>{t.reference||'-'}</td>
+                      <td>{t.description||'-'}</td>
+                      <td style={{textAlign:'right'}}>{t.type==='in'?<span style={{color:C.green,fontWeight:600}}>{IDR(t.amount)}</span>:'-'}</td>
+                      <td style={{textAlign:'right'}}>{t.type==='out'?<span style={{color:C.red,fontWeight:600}}>{IDR(t.amount)}</span>:'-'}</td>
+                      <td style={{textAlign:'right',fontFamily:'monospace',fontWeight:700}}>{IDR(t.balance)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LAPORAN PEMBELIAN */}
+      {activeTab==='purchases'&&data&&!loading&&(
+        <div>
+          <div className="g3" style={{marginBottom:20}}>
+            <div className="metric">
+              <div className="m-lbl">Total Pembelian</div>
+              <div className="m-val" style={{fontSize:18}}>{IDR(data.total)}</div>
+              <div className="m-sub">{data.invoices?.length||0} faktur</div>
+            </div>
+            <div className="metric">
+              <div className="m-lbl">Sudah Dibayar</div>
+              <div className="m-val" style={{color:C.green,fontSize:18}}>{IDR(data.total_paid)}</div>
+            </div>
+            <div className="metric amber">
+              <div className="m-lbl">Sisa Hutang</div>
+              <div className="m-val amber" style={{fontSize:18}}>{IDR(data.total_debt)}</div>
+            </div>
+          </div>
+          <div className="tbl-wrap">
+            <div className="tbl-scroll">
+              <table>
+                <thead><tr>
+                  <th>No Faktur</th><th>Distributor</th><th>Tgl Faktur</th><th>Jatuh Tempo</th>
+                  <th>Tipe Bayar</th><th>Total</th><th>Dibayar</th><th>Sisa</th><th>Status</th>
+                </tr></thead>
+                <tbody>
+                  {data.invoices?.map(inv=>(
+                    <tr key={inv.id}>
+                      <td style={{fontFamily:'monospace',fontSize:12,fontWeight:700}}>{inv.invoice_no}</td>
+                      <td>{inv.distributor_name}</td>
+                      <td>{fmtDate(inv.invoice_date)}</td>
+                      <td style={{color:inv.status==='overdue'?C.red:C.text}}>{fmtDate(inv.due_date)}</td>
+                      <td><span className="tag tgy">{inv.payment_type==='cash'?'Cash':inv.payment_type==='hutang_penuh'?'Hutang Penuh':'Hutang Sebagian'}</span></td>
+                      <td><span className="price">{IDR(inv.total_amount)}</span></td>
+                      <td><span className="price" style={{color:C.green}}>{IDR(inv.paid_amount)}</span></td>
+                      <td><span className="price" style={{color:inv.remaining_amount>0?C.red:C.green,fontWeight:700}}>{IDR(inv.remaining_amount)}</span></td>
+                      <td><StatusBadge status={inv.status}/></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LAPORAN HUTANG */}
+      {activeTab==='debts'&&data&&!loading&&(
+        <div>
+          <div className="g3" style={{marginBottom:20}}>
+            <div className="metric">
+              <div className="m-lbl">Total Pembelian Kredit</div>
+              <div className="m-val" style={{fontSize:18}}>{IDR(data.summary?.total_purchase)}</div>
+            </div>
+            <div className="metric">
+              <div className="m-lbl">Total Dibayar</div>
+              <div className="m-val" style={{color:C.green,fontSize:18}}>{IDR(data.summary?.total_paid)}</div>
+            </div>
+            <div className="metric amber">
+              <div className="m-lbl">Total Sisa Hutang</div>
+              <div className="m-val amber" style={{fontSize:18}}>{IDR(data.summary?.total_debt)}</div>
+            </div>
+          </div>
+          <div className="tbl-wrap">
+            <div className="tbl-scroll">
+              <table>
+                <thead><tr>
+                  <th>No Faktur</th><th>Distributor</th><th>Tgl Faktur</th><th>Jatuh Tempo</th>
+                  <th>Total</th><th>Dibayar</th><th>Sisa Hutang</th><th>Status</th>
+                </tr></thead>
+                <tbody>
+                  {data.debts?.map(d=>(
+                    <tr key={d.id} style={{background:d.status==='overdue'?'#fff5f5':undefined}}>
+                      <td style={{fontFamily:'monospace',fontSize:12,fontWeight:700}}>{d.invoice_no}</td>
+                      <td>{d.distributor_name}</td>
+                      <td>{fmtDate(d.invoice_date)}</td>
+                      <td style={{color:d.status==='overdue'?C.red:C.text,fontWeight:d.status==='overdue'?700:400}}>{fmtDate(d.due_date)}</td>
+                      <td><span className="price">{IDR(d.total_amount)}</span></td>
+                      <td><span className="price" style={{color:C.green}}>{IDR(d.paid_amount)}</span></td>
+                      <td><span className="price" style={{color:d.remaining_amount>0?C.red:C.green,fontWeight:700}}>{IDR(d.remaining_amount)}</span></td>
+                      <td><StatusBadge status={d.status}/></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── REPORTS SCREEN (existing, extended) ── */
+function ReportsScreen({user,lang}){
+  const t=T[lang];
+  const [data,setData]=useState(null);
+  const [range,setRange]=useState('today');
+  const [from,setFrom]=useState(today());
+  const [to,setTo]=useState(today());
+
+  const load=async()=>{
+    const f=range==='today'?today():range==='weekly'?addDays(today(),-7):range==='monthly'?monthStart():from;
+    const t2=range==='custom'?to:today();
+    try{const r=await API.get(`/reports/summary?from=${f}&to=${t2}`);setData(r.data);}catch(e){}
+  };
+  useEffect(()=>{load();},[range,from,to]);
+
+  if(!data)return<div style={{padding:40,textAlign:'center',color:C.gray}}>Memuat laporan...</div>;
+  const maxDay=Math.max(...(data.daily||[]).map(d=>d.total),1);
+  return(
+    <div>
+      <div className="page-header"><div className="page-title">📊 Laporan Penjualan</div></div>
+      <div className="filter-bar" style={{marginBottom:16}}>
+        <div className="tabs">
+          {[['today',t.daily],['weekly',t.weekly],['monthly',t.monthly],['custom',t.custom]].map(([k,l])=>(
+            <div key={k} className={'tab'+(range===k?' on':'')} onClick={()=>setRange(k)}>{l}</div>
+          ))}
+        </div>
+        {range==='custom'&&<>
+          <input type="date" value={from} onChange={e=>setFrom(e.target.value)} style={{width:'auto'}}/>
+          <span style={{fontSize:12,color:C.gray}}>s/d</span>
+          <input type="date" value={to} onChange={e=>setTo(e.target.value)} style={{width:'auto'}}/>
+          <button className="btn btn-s btn-sm" onClick={load}>Tampilkan</button>
+        </>}
+      </div>
+
+      <div className="g4" style={{marginBottom:16}}>
+        <div className="metric"><div className="m-lbl">{t.revenue}</div><div className="m-val" style={{fontSize:18}}>{IDR(data.revenue)}</div><div className="m-sub">{data.tx_count} transaksi</div></div>
+        <div className="metric"><div className="m-lbl">{t.profit}</div><div className="m-val" style={{fontSize:18,color:C.green}}>{IDR(data.profit)}</div></div>
+        <div className="metric"><div className="m-lbl">{t.items} Terjual</div><div className="m-val">{data.items_sold}</div></div>
+        <div className="metric amber"><div className="m-lbl">Hutang Pelanggan</div><div className="m-val amber" style={{fontSize:18}}>{IDR(data.total_debt)}</div></div>
+      </div>
+
+      {data.daily?.length>0&&<div className="card" style={{marginBottom:16}}>
+        <div className="section-title">Grafik Penjualan</div>
+        <div className="chart-wrap">
+          {data.daily.map(d=>(
+            <div key={d.date} className="chart-col">
+              <div className="bar" style={{height:Math.max(8,(d.total/maxDay)*90)+'px'}} title={IDR(d.total)}/>
+              <div className="bar-lbl">{d.date.slice(5)}</div>
+            </div>
+          ))}
+        </div>
+      </div>}
+
+      <div className="g2">
+        <div className="card">
+          <div className="section-title">{t.topProducts}</div>
+          {data.top_products?.map((p,i)=>(
+            <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid #f0f8f2',fontSize:13}}>
+              <span><span style={{color:C.gray,marginRight:8}}>#{i+1}</span>{p.name}</span>
+              <span style={{fontWeight:700}}>{IDR(p.revenue)}</span>
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="section-title">Metode Pembayaran</div>
+          {Object.entries(data.method_break||{}).map(([k,v])=>(
+            <div key={k} style={{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid #f0f8f2',fontSize:13}}>
+              <span style={{textTransform:'capitalize'}}>{k}</span>
+              <span style={{fontWeight:700}}>{IDR(v)}</span>
+            </div>
+          ))}
+          <div className="divider"/>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:13}}>
+            <span>{t.stockValue}</span>
+            <span style={{fontWeight:700}}>{IDR(data.stock_value)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── SETTINGS SCREEN ── */
+function SettingsScreen({user,lang,setLang,showToast,settings,loadSettings}){
+  const t=T[lang];
+  const [form,setForm]=useState({...settings});
+  const [cats,setCats]=useState([]);
+  const [newCat,setNewCat]=useState('');
+  const [users,setUsers]=useState([]);
+  const [uModal,setUModal]=useState(null);
+  const [uForm,setUForm]=useState({});
+  const [actLog,setActLog]=useState([]);
+
+  useEffect(()=>{
+    API.get('/activity_log?limit=100').then(r=>setActLog(r.data)).catch(()=>{});
+    API.get('/users').then(r=>setUsers(r.data)).catch(()=>{});
+    API.get('/categories').then(r=>setCats(r.data)).catch(()=>{});
+  },[]);
+
+  const saveSettings=async()=>{
+    try{await API.put('/settings',form);await loadSettings();showToast('Pengaturan disimpan','ok');}
+    catch(e){showToast(e.message,'error');}
+  };
+
+  const addCat=async()=>{
+    if(!newCat.trim())return;
+    try{await API.post('/categories',{name:newCat.trim()});setNewCat('');API.get('/categories').then(r=>setCats(r.data));showToast('Ditambahkan','ok');}
+    catch(e){showToast(e.message,'error');}
+  };
+  const delCat=async c=>{
+    try{await API.delete('/categories/'+c.id);API.get('/categories').then(r=>setCats(r.data));}
+    catch(e){showToast(e.message,'error');}
+  };
+
+  const saveUser=async()=>{
+    try{
+      if(uModal==='add')await API.post('/users',uForm);
+      else await API.put('/users/'+uForm.id,uForm);
+      showToast('User disimpan','ok');setUModal(null);API.get('/users').then(r=>setUsers(r.data));
+    }catch(e){showToast(e.message,'error');}
+  };
+
+  return(
+    <div>
+      <div className="page-title" style={{marginBottom:18}}>⚙️ Pengaturan</div>
+      <div className="g2">
+        <div>
+          <div className="card" style={{marginBottom:14}}>
+            <div className="section-title">Informasi Toko</div>
+            <div className="fg"><label className="fl">Nama Toko</label><input value={form.storeName||''} onChange={e=>setForm(f=>({...f,storeName:e.target.value}))}/></div>
+            <div className="fg"><label className="fl">Alamat</label><input value={form.storeAddr||''} onChange={e=>setForm(f=>({...f,storeAddr:e.target.value}))}/></div>
+            <div className="fg"><label className="fl">Info Bank / QRIS</label><textarea value={form.bankInfo||''} onChange={e=>setForm(f=>({...f,bankInfo:e.target.value}))} rows={2}/></div>
+            <div className="fg"><label className="fl">Footer Struk</label><input value={form.receiptFooter||''} onChange={e=>setForm(f=>({...f,receiptFooter:e.target.value}))}/></div>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+              <label style={{fontSize:13,fontWeight:600}}>Pajak (PPN)</label>
+              <input type="checkbox" checked={form.tax==='1'} onChange={e=>setForm(f=>({...f,tax:e.target.checked?'1':'0'}))} style={{width:'auto'}}/>
+              {form.tax==='1'&&<input type="number" value={form.taxPct||11} onChange={e=>setForm(f=>({...f,taxPct:e.target.value}))} style={{width:60}} placeholder="11"/>}
+              {form.tax==='1'&&<span style={{fontSize:13}}>%</span>}
+            </div>
+            <button className="btn btn-p btn-sm" onClick={saveSettings}>Simpan Pengaturan</button>
+          </div>
+
+          <div className="card" style={{marginBottom:14}}>
+            <div className="section-title">Kategori Produk</div>
+            <div style={{display:'flex',gap:8,marginBottom:10}}>
+              <input value={newCat} onChange={e=>setNewCat(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addCat()} placeholder="Nama kategori baru" style={{flex:1}}/>
+              <button className="btn btn-p btn-sm" onClick={addCat}>Tambah</button>
+            </div>
+            <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+              {cats.map(c=>(
+                <span key={c.id} style={{background:C.greenL,color:C.green,borderRadius:20,padding:'4px 12px',fontSize:12,fontWeight:600,display:'flex',alignItems:'center',gap:6}}>
+                  {c.name}
+                  <button onClick={()=>delCat(c)} style={{background:'none',border:'none',color:C.red,cursor:'pointer',fontSize:14,lineHeight:1}}>×</button>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="card">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+              <div className="section-title" style={{margin:0}}>Manajemen User</div>
+              <button className="btn btn-p btn-xs" onClick={()=>{setUForm({username:'',name:'',role:'cashier',password:''});setUModal('add');}}>+ Tambah User</button>
+            </div>
+            <table>
+              <thead><tr><th>Nama</th><th>Username</th><th>Role</th><th>Aksi</th></tr></thead>
+              <tbody>
+                {users.map(u=>(
+                  <tr key={u.id}>
+                    <td>{u.name}</td><td>{u.username}</td>
+                    <td><span className={'badge '+(u.role==='owner'?'badge-g':u.role==='admin'?'badge-a':'tgy tag')}>{u.role}</span></td>
+                    <td><button className="btn btn-s btn-xs" onClick={()=>{setUForm({...u,password:''});setUModal('edit');}}>Edit</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <div className="card" style={{marginBottom:14}}>
+            <div className="section-title">Bahasa</div>
+            <div className="lang-row" style={{display:'inline-flex'}}>
+              <button className={'lang-btn'+(lang==='id'?' on':'')} onClick={()=>{setLang('id');API.put('/settings',{lang:'id'});}}>🇮🇩 Bahasa Indonesia</button>
+              <button className={'lang-btn'+(lang==='en'?' on':'')} onClick={()=>{setLang('en');API.put('/settings',{lang:'en'});}}>🇺🇸 English</button>
+            </div>
+          </div>
+
+          <div className="card" style={{marginBottom:14}}>
+            <div className="section-title">Backup Data</div>
+            <p style={{fontSize:12,color:C.gray,marginBottom:10}}>Download backup semua data toko dalam format JSON.</p>
+            <a className="btn btn-s btn-sm" href="/api/backup" target="_blank">⬇ Download Backup</a>
+          </div>
+
+          <div className="card">
+            <div className="section-title">Log Aktivitas</div>
+            <div style={{maxHeight:280,overflowY:'auto'}}>
+              {actLog.map(a=>(
+                <div key={a.id} style={{padding:'6px 0',borderBottom:'1px solid #f0f8f2',fontSize:12}}>
+                  <div style={{fontWeight:600}}>{a.action} <span style={{color:C.gray,fontWeight:400}}>— {a.detail}</span></div>
+                  <div style={{color:C.gray,fontSize:11}}>{fmtDT(a.date)}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {uModal&&(
+        <Modal title={uModal==='add'?'Tambah User':'Edit User'} onClose={()=>setUModal(null)}>
+          <div className="fg"><label className="fl">Nama Lengkap</label><input value={uForm.name||''} onChange={e=>setUForm(f=>({...f,name:e.target.value}))}/></div>
+          <div className="fg"><label className="fl">Username</label><input value={uForm.username||''} onChange={e=>setUForm(f=>({...f,username:e.target.value}))} disabled={uModal==='edit'}/></div>
+          <div className="fg"><label className="fl">{uModal==='edit'?'Password Baru (kosongkan jika tidak diubah)':'Password'}</label>
+            <input type="password" value={uForm.password||''} onChange={e=>setUForm(f=>({...f,password:e.target.value}))}/>
+          </div>
+          <div className="fg"><label className="fl">Role</label>
+            <select value={uForm.role||'cashier'} onChange={e=>setUForm(f=>({...f,role:e.target.value}))}>
+              <option value="cashier">Kasir</option>
+              <option value="admin">Admin</option>
+              <option value="owner">Pemilik</option>
+            </select>
+          </div>
+          <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+            <button className="btn btn-s btn-sm" onClick={()=>setUModal(null)}>Batal</button>
+            <button className="btn btn-p btn-sm" onClick={saveUser}>Simpan</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+/* ── DASHBOARD SCREEN ── */
+function DashboardScreen({user,showToast}){
+  const [data,setData]=useState(null);
+
+  const load=()=>{
+    API.get('/dashboard').then(r=>setData(r.data)).catch(e=>showToast(e.message,'error'));
+  };
+  useEffect(()=>{load();},[]);
+
+  if(!data)return<div style={{padding:40,textAlign:'center',color:C.gray}}>Memuat dashboard...</div>;
+
+  const {sales_month,purchase_month,debt_stats,due_today,due_7days,overdue,
+         cash_balance,kas_masuk_month,kas_keluar_month,dist_count,top_debtors,low_stock,out_stock}=data;
+
+  return(
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}}>
+        <div className="page-title">📊 Dashboard</div>
+        <button className="btn btn-s btn-sm" onClick={load}>🔄 Refresh</button>
+      </div>
+
+      {/* Notifikasi Overdue */}
+      {overdue?.length>0&&(
+        <div className="notif-card notif-high" style={{marginBottom:8}}>
+          <span style={{fontSize:20}}>🚨</span>
+          <div>
+            <div style={{fontWeight:700,fontSize:13}}>HUTANG JATUH TEMPO: {overdue.length} Faktur</div>
+            <div style={{fontSize:12}}>Total: {IDR(debt_stats?.overdue_amount||0)} — Segera lakukan pembayaran!</div>
+            <div style={{marginTop:6,display:'flex',flexWrap:'wrap',gap:4}}>
+              {overdue.slice(0,3).map(d=>(
+                <span key={d.id} style={{fontSize:11,background:'#fee2e2',color:C.red,padding:'2px 8px',borderRadius:12,fontWeight:700}}>
+                  {d.invoice_no} ({IDR(d.remaining_amount)})
+                </span>
+              ))}
+              {overdue.length>3&&<span style={{fontSize:11,color:C.gray}}>+{overdue.length-3} lainnya</span>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {due_today?.length>0&&(
+        <div className="notif-card notif-high" style={{marginBottom:8}}>
+          <span style={{fontSize:20}}>⏰</span>
+          <div>
+            <div style={{fontWeight:700,fontSize:13}}>JATUH TEMPO HARI INI: {due_today.length} Faktur</div>
+            <div style={{fontSize:12}}>{due_today.map(d=>d.invoice_no).join(', ')}</div>
+          </div>
+        </div>
+      )}
+
+      {due_7days?.length>0&&(
+        <div className="notif-card notif-med" style={{marginBottom:14}}>
+          <span style={{fontSize:20}}>📅</span>
+          <div>
+            <div style={{fontWeight:700,fontSize:13}}>Jatuh Tempo 7 Hari: {due_7days.length} Faktur</div>
+            <div style={{fontSize:12}}>{due_7days.map(d=>`${d.invoice_no} (${fmtDate(d.due_date)})`).join(' | ')}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Metrics */}
+      <div className="g5" style={{marginBottom:16}}>
+        <div className="metric">
+          <div className="m-lbl">🛒 Omzet Bulan Ini</div>
+          <div className="m-val" style={{fontSize:15}}>{IDR(sales_month?.revenue||0)}</div>
+          <div className="m-sub">{sales_month?.tx_count||0} transaksi</div>
+        </div>
+        <div className="metric">
+          <div className="m-lbl">🛍 Pembelian Bulan Ini</div>
+          <div className="m-val" style={{fontSize:15}}>{IDR(purchase_month?.total||0)}</div>
+          <div className="m-sub">{purchase_month?.count||0} faktur</div>
+        </div>
+        <div className="metric amber">
+          <div className="m-lbl">💳 Total Hutang Aktif</div>
+          <div className="m-val amber" style={{fontSize:15}}>{IDR(debt_stats?.total_debt||0)}</div>
+          <div className="m-sub">{debt_stats?.active_count||0} faktur aktif</div>
+        </div>
+        <div className="metric red">
+          <div className="m-lbl">⚠ Hutang Overdue</div>
+          <div className="m-val red" style={{fontSize:15}}>{IDR(debt_stats?.overdue_amount||0)}</div>
+          <div className="m-sub">{debt_stats?.overdue_count||0} faktur</div>
+        </div>
+        <div className={'metric'+(cash_balance<0?' red':'')}>
+          <div className="m-lbl">💰 Saldo Kas</div>
+          <div className={'m-val'+(cash_balance<0?' red':'')} style={{fontSize:15}}>{IDR(cash_balance||0)}</div>
+          <div className="m-sub">{cash_balance>=0?'Normal':'Defisit ⚠'}</div>
+        </div>
+      </div>
+
+      <div className="g4" style={{marginBottom:16}}>
+        <div className="metric blue">
+          <div className="m-lbl">🏭 Total Distributor</div>
+          <div className="m-val blue">{dist_count||0}</div>
+        </div>
+        <div className="metric">
+          <div className="m-lbl">⬇ Kas Masuk Bulan Ini</div>
+          <div className="m-val" style={{color:C.green,fontSize:15}}>{IDR(kas_masuk_month||0)}</div>
+        </div>
+        <div className="metric amber">
+          <div className="m-lbl">⬆ Kas Keluar Bulan Ini</div>
+          <div className="m-val amber" style={{fontSize:15}}>{IDR(kas_keluar_month||0)}</div>
+        </div>
+        <div className="metric red">
+          <div className="m-lbl">📦 Stok Menipis / Habis</div>
+          <div className="m-val red">{(low_stock||0)+(out_stock||0)}</div>
+          <div className="m-sub">{out_stock||0} habis, {low_stock||0} rendah</div>
+        </div>
+      </div>
+
+      <div className="g2">
+        {/* Top 10 Distributor Hutang */}
+        <div className="card">
+          <div className="section-title">🏆 Top Distributor Hutang Terbesar</div>
+          {!top_debtors?.length&&<div style={{color:C.gray,fontSize:13,padding:8}}>Tidak ada hutang aktif</div>}
+          {top_debtors?.map((d,i)=>(
+            <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid #f0f8f2'}}>
+              <div>
+                <span style={{color:C.gray,fontSize:11,marginRight:8}}>#{i+1}</span>
+                <span style={{fontWeight:600,fontSize:13}}>{d.name}</span>
+                {d.sales_name&&<span style={{fontSize:11,color:C.gray,marginLeft:6}}>{d.sales_name}</span>}
+              </div>
+              <span style={{fontWeight:700,color:C.red,fontSize:13}}>{IDR(d.total_debt)}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Faktur Jatuh Tempo */}
+        <div className="card">
+          <div className="section-title">📅 Faktur Jatuh Tempo 7 Hari</div>
+          {!due_7days?.length&&!overdue?.length&&<div style={{color:C.gray,fontSize:13,padding:8}}>Tidak ada faktur jatuh tempo dalam 7 hari 🎉</div>}
+          {overdue?.map(d=>(
+            <div key={d.id} className="notif-card notif-high" style={{margin:'4px 0',padding:'8px 10px'}}>
+              <div>
+                <div style={{fontWeight:700,fontSize:12}}>{d.invoice_no} — {d.distributor_name}</div>
+                <div style={{fontSize:11,color:C.red}}>Jatuh Tempo: {fmtDate(d.due_date)} • Sisa: {IDR(d.remaining_amount)}</div>
+              </div>
+            </div>
+          ))}
+          {due_7days?.map(d=>(
+            <div key={d.id} className="notif-card notif-med" style={{margin:'4px 0',padding:'8px 10px'}}>
+              <div>
+                <div style={{fontWeight:700,fontSize:12}}>{d.invoice_no} — {d.distributor_name}</div>
+                <div style={{fontSize:11,color:C.amber}}>Jatuh Tempo: {fmtDate(d.due_date)} • Sisa: {IDR(d.remaining_amount)}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ── APP ROOT ── */
+function App(){
+  const [user,setUser]=useState(null);
+  const [lang,setLang]=useState('id');
+  const [page,setPage]=useState('dashboard');
+  const [settings,setSettings]=useState({});
+  const [ready,setReady]=useState(false);
+  const [toast,setToast]=useState(null);
+
+  const loadSettings=async()=>{
+    try{const r=await API.get('/settings');setSettings(r.data);if(r.data.lang)setLang(r.data.lang);}catch(e){}
+  };
+
+  useEffect(()=>{
+    loadSettings().then(()=>{
+      const stored=localStorage.getItem('tokoku_user');
+      if(stored){try{setUser(JSON.parse(stored));}catch(e){}}
+      setReady(true);
+      document.getElementById('init-loader').style.display='none';
+    });
+  },[]);
+
+  useEffect(()=>{
+    if(user)localStorage.setItem('tokoku_user',JSON.stringify(user));
+    else localStorage.removeItem('tokoku_user');
+  },[user]);
+
+  const showToast=(msg,type='ok')=>{
+    setToast({msg,type});
+    setTimeout(()=>setToast(null),3200);
+  };
+
+  const logout=async()=>{
+    try{await API.post('/logout',{user_id:user.id,name:user.name});}catch(e){}
+    setUser(null);setPage('dashboard');
+  };
+
+  if(!ready)return null;
+  if(!user)return<LoginScreen onLogin={u=>{setUser(u);setPage('dashboard');}} lang={lang} setLang={setLang}/>;
+
+  const t=T[lang];
+
+  const nav=[
+    {id:'dashboard',i:'📊',l:'Dashboard',r:['owner','admin']},
+    {id:'pos',i:'🛒',l:t.pos,r:['owner','admin','cashier']},
+    {id:'products',i:'📦',l:t.products,r:['owner','admin']},
+    {id:'customers',i:'👥',l:t.customers,r:['owner','admin']},
+    {id:'txhistory',i:'📋',l:t.txHistory,r:['owner','admin']},
+    {id:'distributor',i:'🏭',l:t.distributor,r:['owner','admin']},
+    {id:'pembelian',i:'🛍',l:t.pembelian,r:['owner','admin']},
+    {id:'hutang',i:'💳',l:t.hutang,r:['owner','admin']},
+    {id:'kas',i:'💰',l:t.kas,r:['owner','admin']},
+    {id:'laporanKeu',i:'📈',l:t.laporanKeu,r:['owner','admin']},
+    {id:'reports',i:'📊',l:'Lap. Penjualan',r:['owner','admin']},
+    {id:'settings',i:'⚙️',l:t.settings,r:['owner','admin']},
+  ].filter(n=>n.r.includes(user.role));
+
+  const pageLabel=Object.fromEntries(nav.map(n=>[n.id,n.l]));
+  const roleLabel={owner:'Pemilik',admin:'Admin',cashier:'Kasir'};
+
+  const navSections=[
+    {label:'Penjualan',ids:['dashboard','pos','products','customers','txhistory']},
+    {label:'Pembelian & Keuangan',ids:['distributor','pembelian','hutang','kas','laporanKeu']},
+    {label:'Laporan & Sistem',ids:['reports','settings']},
+  ];
+
+  return(
+    <div className="app">
+      <div className="sidebar">
+        <div className="sidebar-logo">
+          <h1>🛒 TokoKu POS</h1>
+          <p>{settings.storeName||'Toko Kelontong'}</p>
+        </div>
+        <div style={{padding:'6px 0',flex:1}}>
+          {navSections.map(section=>{
+            const sectionNav=nav.filter(n=>section.ids.includes(n.id));
+            if(sectionNav.length===0)return null;
+            return(
+              <div key={section.label}>
+                <div className="nav-section">{section.label}</div>
+                {sectionNav.map(n=>(
+                  <div key={n.id} className={'nav-item'+(page===n.id?' active':'')} onClick={()=>setPage(n.id)}>
+                    <span style={{fontSize:16,width:22,textAlign:'center'}}>{n.i}</span>{n.l}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{padding:'10px 8px',borderTop:'1px solid rgba(255,255,255,0.1)'}}>
+          <div style={{padding:'8px 14px 10px',fontSize:12}}>
+            <div style={{opacity:0.65,fontSize:11,marginBottom:2}}>{roleLabel[user.role]}</div>
+            <div style={{fontWeight:700,fontSize:14}}>{user.name}</div>
+          </div>
+          <div className="nav-item" onClick={logout} style={{color:'rgba(255,255,255,0.7)'}}>
+            <span style={{fontSize:16,width:22,textAlign:'center'}}>🚪</span>{t.logout}
+          </div>
+        </div>
+      </div>
+
+      <div className="main">
+        <div className="topbar">
+          <div style={{fontSize:15,fontWeight:700}}>{pageLabel[page]||page}</div>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <div className="lang-row">
+              <button className={'lang-btn'+(lang==='id'?' on':'')} onClick={()=>{setLang('id');API.put('/settings',{lang:'id'});}}>🇮🇩 ID</button>
+              <button className={'lang-btn'+(lang==='en'?' on':'')} onClick={()=>{setLang('en');API.put('/settings',{lang:'en'});}}>🇺🇸 EN</button>
+            </div>
+            <span className={'badge '+(user.role==='owner'?'badge-g':user.role==='admin'?'badge-a':'tgy tag')}>
+              {user.role==='owner'?'👑':user.role==='admin'?'🛠':'💳'} {roleLabel[user.role]}
+            </span>
+          </div>
+        </div>
+
+        <div style={{flex:1,overflow:page==='pos'?'hidden':'auto',minHeight:0}}>
+          {page==='pos'&&<POSScreen user={user} lang={lang} showToast={showToast} settings={settings}/>}
+          {page!=='pos'&&(
+            <div className="content">
+              {page==='dashboard'&&<DashboardScreen user={user} showToast={showToast}/>}
+              {page==='products'&&<ProductsScreen user={user} lang={lang} showToast={showToast}/>}
+              {page==='customers'&&<CustomersScreen user={user} lang={lang} showToast={showToast}/>}
+              {page==='txhistory'&&<TxHistoryScreen user={user} lang={lang} showToast={showToast}/>}
+              {page==='distributor'&&<DistributorScreen user={user} showToast={showToast}/>}
+              {page==='pembelian'&&<PembelianScreen user={user} showToast={showToast}/>}
+              {page==='hutang'&&<HutangScreen user={user} showToast={showToast}/>}
+              {page==='kas'&&<KasScreen user={user} showToast={showToast}/>}
+              {page==='laporanKeu'&&<LaporanKeuScreen user={user} showToast={showToast}/>}
+              {page==='reports'&&<ReportsScreen user={user} lang={lang}/>}
+              {page==='settings'&&<SettingsScreen user={user} lang={lang} setLang={setLang} showToast={showToast} settings={settings} loadSettings={loadSettings}/>}
+            </div>
+          )}
+        </div>
+      </div>
+      {toast&&<Toast msg={toast.msg} type={toast.type}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
